@@ -113,6 +113,10 @@ class SmsMessage extends Model
 
     public function getFormattedFromAttribute(): string
     {
+        // Don't format if it's text (contains non-digits except +)
+        if (preg_match('/[^0-9+]/', $this->from)) {
+            return $this->from;
+        }
         return $this->formatPhoneNumber($this->from);
     }
 

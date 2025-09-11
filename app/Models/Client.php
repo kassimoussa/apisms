@@ -5,12 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Services\ApiKeyEncryptionService;
+use Carbon\Carbon;
 
 class Client extends Model
 {
     protected $fillable = [
         'name',
-        'api_key',
+        'api_key_hash',
+        'api_key_encrypted',
+        'api_key_expires_at',
         'rate_limit',
         'active',
         'allowed_ips',
@@ -20,6 +24,12 @@ class Client extends Model
     protected $casts = [
         'allowed_ips' => 'array',
         'active' => 'boolean',
+        'api_key_expires_at' => 'datetime',
+    ];
+
+    protected $hidden = [
+        'api_key_hash',
+        'api_key_encrypted',
     ];
 
     protected static function boot()
@@ -27,8 +37,13 @@ class Client extends Model
         parent::boot();
         
         static::creating(function ($client) {
-            if (empty($client->api_key)) {
-                $client->api_key = 'sk_' . Str::random(32);
+            if (empty($client->api_key_hash) && empty($client->api_key_encrypted)) {
+                $encryptionService = app(ApiKeyEncryptionService::class);
+                $keyData = $encryptionService->generateExpiringApiKey('sk', 365);
+                
+                $client->api_key_hash = $keyData['hashed_key'];
+                $client->api_key_encrypted = $keyData['encrypted_key'];
+                $client->api_key_expires_at = $keyData['expires_at'];
             }
         });
     }
@@ -64,9 +79,67 @@ class Client extends Model
 
     public function regenerateApiKey(): string
     {
-        $this->api_key = 'sk_' . Str::random(32);
+        $encryptionService = app(ApiKeyEncryptionService::class);
+        $keyData = $encryptionService->generateExpiringApiKey('sk', 365);
+        
+        $this->api_key_hash = $keyData['hashed_key'];
+        $this->api_key_encrypted = $keyData['encrypted_key'];
+        $this->api_key_expires_at = $keyData['expires_at'];
         $this->save();
         
-        return $this->api_key;
+        return $keyData['plain_key'];
+    }
+
+    public function verifyApiKey(string $plainKey): bool
+    {
+        if (empty($this->api_key_hash)) {
+            return false;
+        }
+
+        $encryptionService = app(ApiKeyEncryptionService::class);
+        return $encryptionService->verifyApiKey($plainKey, $this->api_key_hash);
+    }
+
+    public function getDecryptedApiKey(): ?string
+    {
+        if (empty($this->api_key_encrypted)) {
+            return null;
+        }
+
+        try {
+            $encryptionService = app(ApiKeyEncryptionService::class);
+            return $encryptionService->decryptApiKey($this->api_key_encrypted);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    public function getMaskedApiKey(): ?string
+    {
+        $plainKey = $this->getDecryptedApiKey();
+        if (!$plainKey) {
+            return null;
+        }
+
+        $encryptionService = app(ApiKeyEncryptionService::class);
+        return $encryptionService->maskApiKey($plainKey);
+    }
+
+    public function isApiKeyExpired(): bool
+    {
+        if (!$this->api_key_expires_at) {
+            return false;
+        }
+
+        return $this->api_key_expires_at->isPast();
+    }
+
+    public function scopeWithValidApiKey($query)
+    {
+        return $query->where('active', true)
+                    ->where(function ($q) {
+                        $q->whereNull('api_key_expires_at')
+                          ->orWhere('api_key_expires_at', '>', now());
+                    });
     }
 }

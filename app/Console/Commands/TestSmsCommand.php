@@ -58,7 +58,7 @@ class TestSmsCommand extends Command
         // Validate phone number
         if (!$this->kannelService->isValidPhoneNumber($to)) {
             $this->error("❌ Invalid phone number: $to");
-            $this->info('Expected format: +253XXXXXXXX (Djibouti numbers)');
+            $this->info('Expected formats: +253XXXXXXXX, 253XXXXXXXX, or 77XXXXXX');
             return 1;
         }
 

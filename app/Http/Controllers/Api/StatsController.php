@@ -19,9 +19,6 @@ class StatsController extends Controller
 
     /**
      * Get client statistics
-     * 
-     * @group Statistics API
-     * @queryParam period string Time period for stats (today,week,month,year). Example: month
      */
     public function index(Request $request)
     {
@@ -96,8 +93,6 @@ class StatsController extends Controller
 
     /**
      * Get real-time statistics
-     * 
-     * @group Statistics API
      */
     public function realtime(Request $request)
     {

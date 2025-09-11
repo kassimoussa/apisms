@@ -28,8 +28,8 @@ class AuthenticateApiClient
             ], 401);
         }
 
-        // Find the client
-        $client = Client::where('api_key', $apiKey)->active()->first();
+        // Find the client using the new encrypted API key system
+        $client = $this->authenticateClient($apiKey);
 
         if (!$client) {
             Log::warning('Invalid API key attempted', [
@@ -40,7 +40,7 @@ class AuthenticateApiClient
 
             return response()->json([
                 'error' => 'Invalid API key',
-                'message' => 'The provided API key is invalid or inactive.',
+                'message' => 'The provided API key is invalid, expired, or inactive.',
             ], 401);
         }
 
@@ -98,5 +98,36 @@ class AuthenticateApiClient
         ]);
 
         return $next($request);
+    }
+
+    /**
+     * Authenticate client using encrypted API key system
+     */
+    private function authenticateClient(string $apiKey): ?Client
+    {
+        // First, try to find by legacy api_key for backward compatibility
+        $client = Client::where('api_key', $apiKey)
+                       ->withValidApiKey()
+                       ->first();
+        
+        if ($client) {
+            return $client;
+        }
+
+        // Try to find by new hashed API key system
+        $hashedKey = hash('sha256', $apiKey);
+        
+        $client = Client::where('api_key_hash', $hashedKey)
+                       ->withValidApiKey()
+                       ->first();
+
+        if ($client) {
+            // Verify the API key hasn't been tampered with
+            if ($client->verifyApiKey($apiKey)) {
+                return $client;
+            }
+        }
+
+        return null;
     }
 }

@@ -1,0 +1,542 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "ApiSMS Gateway",
+        "description": "Modern SMS Gateway API for Kannel integration - Djibouti DPCR Fleet Management System",
+        "contact": {
+            "name": "DPCR Technical Team",
+            "email": "tech@dpcr.dj"
+        },
+        "license": {
+            "name": "Proprietary",
+            "url": "https://dpcr.dj"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://apisms.test",
+            "description": "Development Server"
+        },
+        {
+            "url": "https://sms-gateway.dj",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/sms/send": {
+            "post": {
+                "tags": [
+                    "SMS"
+                ],
+                "summary": "Send SMS Message",
+                "description": "Send an SMS message through the Kannel gateway. Supports both synchronous and asynchronous processing.",
+                "operationId": "fef7eb392f2ad05b9531aea01bce80bb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "to",
+                                    "message"
+                                ],
+                                "properties": {
+                                    "to": {
+                                        "description": "Recipient phone number (Djibouti format: 77XXXXXX or +25377XXXXXX)",
+                                        "type": "string",
+                                        "example": "77166677"
+                                    },
+                                    "message": {
+                                        "description": "SMS message content (max 160 characters)",
+                                        "type": "string",
+                                        "maxLength": 160,
+                                        "example": "Test SMS from ApiSMS Gateway"
+                                    },
+                                    "from": {
+                                        "description": "Sender ID (can be text up to 11 chars or phone number)",
+                                        "type": "string",
+                                        "example": "11123"
+                                    },
+                                    "async": {
+                                        "description": "Send asynchronously via queue (default: false)",
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "SMS sent successfully (synchronous)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "direction": {
+                                                    "type": "string",
+                                                    "example": "outbound"
+                                                },
+                                                "from": {
+                                                    "type": "string",
+                                                    "example": "+25311123"
+                                                },
+                                                "to": {
+                                                    "type": "string",
+                                                    "example": "+25377166677"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Test SMS from ApiSMS Gateway"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "sent"
+                                                },
+                                                "kannel_id": {
+                                                    "type": "string",
+                                                    "example": "uuid-string"
+                                                },
+                                                "sent_at": {
+                                                    "type": "string",
+                                                    "format": "datetime",
+                                                    "example": "2025-09-11T10:00:00.000000Z"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "datetime",
+                                                    "example": "2025-09-11T10:00:00.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "datetime",
+                                                    "example": "2025-09-11T10:00:00.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "202": {
+                        "description": "SMS queued for delivery (asynchronous)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "SMS queued for delivery"
+                                        },
+                                        "async": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "sms": {
+                                            "description": "SMS record with status 'pending'",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or SMS sending failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "SMS sending failed"
+                                        },
+                                        "code": {
+                                            "type": "string",
+                                            "example": "KANNEL_5"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid destination number"
+                                        },
+                                        "sms": {
+                                            "description": "SMS record with failure details",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Rate limit exceeded"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/sms/{id}/status": {
+            "get": {
+                "tags": [
+                    "SMS"
+                ],
+                "summary": "Get SMS Status",
+                "description": "Retrieve the status of a specific SMS message including delivery information.",
+                "operationId": "786fbafa20a8924332acce918cf98d44",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SMS message ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SMS status retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "direction": {
+                                                    "type": "string",
+                                                    "example": "outbound"
+                                                },
+                                                "from": {
+                                                    "type": "string",
+                                                    "example": "+25311123"
+                                                },
+                                                "to": {
+                                                    "type": "string",
+                                                    "example": "+25377166677"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Test SMS from ApiSMS Gateway"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "pending",
+                                                        "sent",
+                                                        "delivered",
+                                                        "failed"
+                                                    ],
+                                                    "example": "delivered"
+                                                },
+                                                "kannel_id": {
+                                                    "type": "string",
+                                                    "example": "uuid-string"
+                                                },
+                                                "sent_at": {
+                                                    "type": "string",
+                                                    "format": "datetime",
+                                                    "nullable": true
+                                                },
+                                                "delivered_at": {
+                                                    "type": "string",
+                                                    "format": "datetime",
+                                                    "nullable": true
+                                                },
+                                                "error_code": {
+                                                    "type": "string",
+                                                    "example": "KANNEL_5",
+                                                    "nullable": true
+                                                },
+                                                "error_message": {
+                                                    "type": "string",
+                                                    "example": "Invalid destination number",
+                                                    "nullable": true
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "datetime"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "datetime"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "SMS message not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "SMS not found"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The requested SMS message was not found or does not belong to your client."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/sms": {
+            "get": {
+                "tags": [
+                    "SMS"
+                ],
+                "summary": "List SMS Messages",
+                "description": "Retrieve a paginated list of SMS messages for the authenticated client with optional filters.",
+                "operationId": "3b22f2c6857cc8a9ac22227b262efd28",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of messages per page (max 100)",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "example": 20
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by SMS status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "sent",
+                                "delivered",
+                                "failed"
+                            ],
+                            "example": "delivered"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "description": "Filter by SMS direction",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "outbound",
+                                "inbound"
+                            ],
+                            "example": "outbound"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SMS messages retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 123
+                                                    },
+                                                    "direction": {
+                                                        "type": "string",
+                                                        "example": "outbound"
+                                                    },
+                                                    "from": {
+                                                        "type": "string",
+                                                        "example": "+25311123"
+                                                    },
+                                                    "to": {
+                                                        "type": "string",
+                                                        "example": "+25377166677"
+                                                    },
+                                                    "message": {
+                                                        "type": "string",
+                                                        "example": "Test SMS from ApiSMS Gateway"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "delivered"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "datetime"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "links": {
+                                            "properties": {
+                                                "first": {
+                                                    "type": "string",
+                                                    "example": "http://apisms.test/api/v1/sms?page=1"
+                                                },
+                                                "last": {
+                                                    "type": "string",
+                                                    "example": "http://apisms.test/api/v1/sms?page=5"
+                                                },
+                                                "prev": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "next": {
+                                                    "type": "string",
+                                                    "example": "http://apisms.test/api/v1/sms?page=2"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 95
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Enter your API key in the format: Bearer {api_key}",
+                "bearerFormat": "API Key",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "SMS",
+            "description": "SMS sending and management operations"
+        }
+    ]
+}

@@ -1,188 +1,405 @@
-<div>
-    <!-- Page Header -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">SMS Gateway Dashboard</h1>
-                <p class="mt-1 text-sm text-gray-500">
-                    Monitor SMS traffic and Kannel connectivity in real-time
-                </p>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button wire:click="refreshStats" 
-                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    <svg wire:loading wire:target="refreshStats" class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <svg wire:loading.remove wire:target="refreshStats" class="-ml-1 mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                    </svg>
-                    Refresh
+<div x-data="{ autoRefresh: @entangle('autoRefresh') }" class="space-y-6">
+    <!-- Header with Controls -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">📊 Dashboard</h1>
+            <p class="mt-1 text-sm text-gray-600">Real-time SMS Gateway monitoring and analytics</p>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <!-- Auto-refresh toggle -->
+            <div class="flex items-center space-x-2">
+                <label class="text-sm text-gray-700">Auto-refresh</label>
+                <button 
+                    wire:click="toggleAutoRefresh"
+                    :class="autoRefresh ? 'bg-green-600' : 'bg-gray-300'"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <span 
+                        :class="autoRefresh ? 'translate-x-6' : 'translate-x-1'"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
                 </button>
-                
-                <!-- Kannel Status -->
-                @if($kannelStatus['success'])
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        🟢 Kannel Online
-                    </span>
-                @else
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        🔴 Kannel Offline
-                    </span>
-                @endif
             </div>
+
+            <!-- Manual refresh -->
+            <button wire:click="refreshData" 
+                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                <svg wire:loading wire:target="refreshData" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                🔄 Refresh
+            </button>
+
+            <!-- Export data -->
+            <button wire:click="exportData"
+                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                📥 Export
+            </button>
+
+            <!-- Kannel Status Indicator -->
+            @if(isset($systemHealth['kannel']['success']) && $systemHealth['kannel']['success'])
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    🟢 Kannel Online
+                </span>
+            @else
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    🔴 Kannel Offline
+                </span>
+            @endif
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Clients Card -->
+    <!-- Real-time Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total SMS Today -->
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                            <span class="text-blue-600 text-sm font-semibold">👥</span>
-                        </div>
+                        <div class="text-2xl">📱</div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">SMS Today</dt>
+                            <dd class="text-3xl font-bold text-gray-900">{{ number_format($realTimeStats['today_sms'] ?? 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <span class="text-gray-700">Success Rate: </span>
+                    <span class="font-medium text-green-600">{{ $realTimeStats['success_rate'] ?? 0 }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivered Today -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="text-2xl">✅</div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Delivered Today</dt>
+                            <dd class="text-3xl font-bold text-green-600">{{ number_format($realTimeStats['delivered_today'] ?? 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <span class="text-gray-700">Avg Time: </span>
+                    <span class="font-medium text-blue-600">{{ $realTimeStats['avg_delivery_time'] ?? 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Failed Today -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="text-2xl">❌</div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Failed Today</dt>
+                            <dd class="text-3xl font-bold text-red-600">{{ number_format($realTimeStats['failed_today'] ?? 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <span class="text-gray-700">Pending: </span>
+                    <span class="font-medium text-yellow-600">{{ number_format($realTimeStats['pending_sms'] ?? 0) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Clients -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="text-2xl">👥</div>
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Active Clients</dt>
-                            <dd class="text-lg font-medium text-gray-900">
-                                {{ $stats['clients']['active'] ?? 0 }} / {{ $stats['clients']['total'] ?? 0 }}
-                            </dd>
+                            <dd class="text-3xl font-bold text-indigo-600">{{ number_format($realTimeStats['active_clients'] ?? 0) }}</dd>
                         </dl>
                     </div>
                 </div>
             </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <span class="text-gray-700">Queue Jobs: </span>
+                    <span class="font-medium text-purple-600">{{ number_format($realTimeStats['queue_jobs']['total'] ?? 0) }}</span>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <!-- Messages Today Card -->
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                            <span class="text-green-600 text-sm font-semibold">📱</span>
+    <!-- Chart Section -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-medium text-gray-900">📈 SMS Activity (Last 7 Days)</h3>
+            <div class="flex items-center space-x-4 text-sm">
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>Delivered</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span>Sent</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span>Failed</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="h-80 relative">
+            <!-- CSS Chart (Default) -->
+            <div id="cssChart" class="w-full h-full p-4">
+                @php
+                    $maxValue = max(
+                        max(array_column($chartData, 'delivered')),
+                        max(array_column($chartData, 'sent')),
+                        max(array_column($chartData, 'failed'))
+                    );
+                    $maxValue = max($maxValue, 1); // Avoid division by zero
+                @endphp
+                <div class="h-full flex items-end justify-between space-x-2">
+                    @forelse($chartData as $index => $day)
+                        <div class="flex-1 flex flex-col items-center space-y-1">
+                            <div class="w-full flex flex-col-reverse justify-end space-y-1" style="height: 200px;">
+                                <!-- Failed bar (bottom) -->
+                                @if(($day['failed'] ?? 0) > 0)
+                                    <div class="w-full bg-red-500" 
+                                         style="height: {{ round(($day['failed'] / $maxValue) * 150) }}px;"
+                                         title="Failed: {{ $day['failed'] }}"></div>
+                                @endif
+                                
+                                <!-- Sent bar (middle) -->
+                                @if(($day['sent'] ?? 0) > 0)
+                                    <div class="w-full bg-blue-500" 
+                                         style="height: {{ round(($day['sent'] / $maxValue) * 150) }}px;"
+                                         title="Sent: {{ $day['sent'] }}"></div>
+                                @endif
+                                
+                                <!-- Delivered bar (top) -->
+                                @if(($day['delivered'] ?? 0) > 0)
+                                    <div class="w-full bg-green-500" 
+                                         style="height: {{ round(($day['delivered'] / $maxValue) * 150) }}px;"
+                                         title="Delivered: {{ $day['delivered'] }}"></div>
+                                @endif
+                                
+                                <!-- Empty state -->
+                                @if(($day['delivered'] ?? 0) == 0 && ($day['sent'] ?? 0) == 0 && ($day['failed'] ?? 0) == 0)
+                                    <div class="w-full bg-gray-200" 
+                                         style="height: 5px;"
+                                         title="No data"></div>
+                                @endif
+                            </div>
+                            <div class="text-xs text-gray-600 text-center font-medium">{{ $day['date'] ?? '' }}</div>
                         </div>
+                    @empty
+                        <div class="flex-1 flex items-center justify-center">
+                            <div class="text-center text-gray-500">
+                                <div class="text-2xl mb-2">📊</div>
+                                <p class="text-sm">No chart data available</p>
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+                
+                <!-- Legend for CSS chart -->
+                <div class="flex justify-center space-x-6 mt-4 text-sm">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-4 h-4 bg-green-500 rounded"></div>
+                        <span>Delivered</span>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Messages Today</dt>
-                            <dd class="text-lg font-medium text-gray-900">{{ $stats['messages']['today'] ?? 0 }}</dd>
-                        </dl>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                        <span>Sent</span>
                     </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-4 h-4 bg-red-500 rounded"></div>
+                        <span>Failed</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Auto-refresh controls -->
+            <div class="mt-4 flex justify-center">
+                <button wire:click="refreshData" 
+                        class="text-sm text-blue-600 hover:text-blue-800 underline">
+                    🔄 Refresh Chart Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Messages -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">📨 Recent Messages</h3>
+            </div>
+            <div class="overflow-hidden">
+                <div class="max-h-96 overflow-y-auto">
+                    @forelse($recentMessages as $message)
+                        <div class="px-6 py-3 border-b border-gray-100 hover:bg-gray-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-gray-900">{{ $message['client_name'] }}</span>
+                                        <span class="text-sm text-gray-500">→</span>
+                                        <span class="text-sm text-gray-600">{{ $message['to'] }}</span>
+                                    </div>
+                                    <p class="mt-1 text-sm text-gray-600 truncate">{{ $message['content_preview'] }}</p>
+                                    <p class="text-xs text-gray-400">{{ $message['created_at'] }}</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $message['status_class'] }}">
+                                        {{ ucfirst($message['status']) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="px-6 py-8 text-center text-gray-500">
+                            <div class="text-2xl mb-2">📭</div>
+                            No recent messages
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
 
-        <!-- Success Rate Card -->
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                            <span class="text-yellow-600 text-sm font-semibold">✅</span>
+        <!-- System Health -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">🏥 System Health</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- Kannel Status -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-lg">🔗</div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">Kannel Gateway</div>
+                            <div class="text-xs text-gray-500">SMS Gateway Connection</div>
                         </div>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Success Rate</dt>
-                            <dd class="text-lg font-medium text-gray-900">
-                                @php
-                                    $sent = $stats['status']['sent'] ?? 0;
-                                    $failed = $stats['status']['failed'] ?? 0;
-                                    $total = $sent + $failed;
-                                    $successRate = $total > 0 ? round(($sent / $total) * 100, 1) : 0;
-                                @endphp
-                                {{ $successRate }}%
-                            </dd>
-                        </dl>
+                    <div class="flex items-center space-x-2">
+                        @if(isset($systemHealth['kannel']['success']) && $systemHealth['kannel']['success'])
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                🟢 Online
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                🔴 Offline
+                            </span>
+                        @endif
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Pending Messages Card -->
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center">
-                            <span class="text-orange-600 text-sm font-semibold">⏳</span>
+                <!-- Database Status -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-lg">🗄️</div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">Database</div>
+                            <div class="text-xs text-gray-500">{{ $systemHealth['database']['response_time_ms'] ?? 0 }}ms response</div>
                         </div>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
-                            <dd class="text-lg font-medium text-gray-900">{{ $stats['status']['pending'] ?? 0 }}</dd>
-                        </dl>
+                    <div class="flex items-center space-x-2">
+                        @if(isset($systemHealth['database']['success']) && $systemHealth['database']['success'])
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                🟢 OK
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                🔴 Error
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Queue Status -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-lg">⏳</div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">Queue System</div>
+                            <div class="text-xs text-gray-500">
+                                {{ $systemHealth['queue']['pending_jobs'] ?? 0 }} pending, 
+                                {{ $systemHealth['queue']['failed_jobs'] ?? 0 }} failed
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        @if(isset($systemHealth['queue']['success']) && $systemHealth['queue']['success'])
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                🟢 Active
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                🔴 Error
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Disk Space -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-lg">💾</div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">Disk Space</div>
+                            <div class="text-xs text-gray-500">{{ $systemHealth['disk_space']['free_space_gb'] ?? 0 }} GB free</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        @if(isset($systemHealth['disk_space']['success']) && $systemHealth['disk_space']['success'])
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                🟢 OK
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                ⚠️ Low
+                            </span>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Messages -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Recent SMS Messages</h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">Latest SMS activity across all clients</p>
+    <!-- Auto-refresh notification -->
+    <div x-data="{ show: false, timestamp: '' }" 
+         x-show="show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         @data-refreshed.window="show = true; timestamp = $event.detail.timestamp; setTimeout(() => show = false, 3000)"
+         class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <span>Data refreshed at <span x-text="timestamp"></span></span>
         </div>
-        <ul class="divide-y divide-gray-200">
-            @forelse($stats['recent_messages'] as $message)
-                <li class="px-4 py-4 sm:px-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                @switch($message['status'])
-                                    @case('sent')
-                                    @case('delivered')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            ✅ {{ ucfirst($message['status']) }}
-                                        </span>
-                                        @break
-                                    @case('failed')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            ❌ Failed
-                                        </span>
-                                        @break
-                                    @case('pending')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            ⏳ Pending
-                                        </span>
-                                        @break
-                                @endswitch
-                            </div>
-                            <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">
-                                    SMS #{{ $message['id'] }} → {{ $message['to'] }}
-                                </div>
-                                <div class="text-sm text-gray-500">
-                                    Client: {{ $message['client'] }} • {{ $message['created_at'] }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            @empty
-                <li class="px-4 py-8 sm:px-6 text-center">
-                    <div class="text-gray-500">
-                        <p class="text-sm">No SMS messages found</p>
-                        <p class="text-xs mt-1">Messages will appear here once clients start sending SMS</p>
-                    </div>
-                </li>
-            @endforelse
-        </ul>
     </div>
-
-    <!-- Auto-refresh every 30 seconds -->
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            setInterval(() => {
-                @this.refreshStats();
-            }, 30000); // 30 seconds
-        });
-    </script>
 </div>
+

@@ -5,22 +5,26 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SmsMessage;
 use App\Models\DeliveryReport;
+use App\Jobs\ProcessDeliveryReportJob;
 use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
 {
     /**
-     * Handle Kannel delivery reports (DLR)
+     * Handle Kannel delivery reports (DLR) - Queue-based processing
      * 
      * URL: /webhooks/kannel/dlr?id={kannel_id}&status={status}
      */
     public function handleDeliveryReport(Request $request)
     {
+        $requestId = uniqid('webhook_dlr_', true);
+        
         try {
             $kannelId = $request->query('id');
             $status = $request->query('status');
             
             Log::info('DLR webhook received', [
+                'request_id' => $requestId,
                 'kannel_id' => $kannelId,
                 'status' => $status,
                 'query_params' => $request->query(),
@@ -28,53 +32,35 @@ class WebhookController extends Controller
             ]);
 
             if (!$kannelId) {
-                Log::warning('DLR webhook missing kannel_id');
+                Log::warning('DLR webhook missing kannel_id', [
+                    'request_id' => $requestId,
+                ]);
                 return response('Missing kannel_id', 400);
             }
 
-            // Find the SMS message by Kannel ID
-            $smsMessage = SmsMessage::where('kannel_id', $kannelId)->first();
+            // Prepare delivery report data for async processing
+            $deliveryData = [
+                'id' => $kannelId,
+                'status' => $status,
+                'status_text' => $request->query('status_text', ''),
+                'error_code' => $request->query('error_code'),
+                'timestamp' => now(),
+                'raw_webhook_data' => $request->query(),
+            ];
 
-            if (!$smsMessage) {
-                Log::warning('DLR webhook: SMS message not found', [
-                    'kannel_id' => $kannelId,
-                ]);
-                return response('SMS not found', 404);
-            }
+            // Dispatch job to process delivery report asynchronously
+            ProcessDeliveryReportJob::dispatch($deliveryData);
 
-            // Parse Kannel DLR status
-            $dlrStatus = $this->parseDeliveryStatus($status);
-            $deliveredAt = now();
-
-            // Create delivery report
-            $deliveryReport = DeliveryReport::create([
-                'sms_message_id' => $smsMessage->id,
+            Log::info('DLR job dispatched', [
+                'request_id' => $requestId,
                 'kannel_id' => $kannelId,
-                'status' => $dlrStatus,
-                'delivered_at' => $deliveredAt,
-                'raw_data' => $request->query(),
-            ]);
-
-            // Update SMS message status
-            if ($dlrStatus === 'delivered') {
-                $smsMessage->markAsDelivered($deliveredAt);
-            } elseif (in_array($dlrStatus, ['failed', 'smsc_reject', 'smsc_unknown'])) {
-                $smsMessage->markAsFailed(
-                    'DLR_' . strtoupper($dlrStatus),
-                    'Delivery failed: ' . $dlrStatus
-                );
-            }
-
-            Log::info('DLR processed successfully', [
-                'sms_id' => $smsMessage->id,
-                'kannel_id' => $kannelId,
-                'status' => $dlrStatus,
             ]);
 
             return response('OK', 200);
 
         } catch (\Exception $e) {
             Log::error('DLR webhook processing failed', [
+                'request_id' => $requestId,
                 'error' => $e->getMessage(),
                 'kannel_id' => $request->query('id'),
                 'query_params' => $request->query(),

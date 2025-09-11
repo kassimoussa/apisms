@@ -39,9 +39,10 @@ composer run dev  # Starts all services concurrently
 
 ```bash
 # SMS Testing
-php artisan sms:test +25377123456                    # Send test SMS
-php artisan sms:test +25377123456 --message="Hello"  # Custom message  
-php artisan sms:test +25377123456 --check-connectivity # Test connection only
+php artisan sms:test 77123456                        # Send test SMS (national format)
+php artisan sms:test +25377123456 --message="Hello"  # Custom message (international)
+php artisan sms:test 77123456 --from="DPCR"         # With text sender
+php artisan sms:test 77123456 --check-connectivity   # Test connection only
 
 # Development  
 composer run dev        # All services (server, queue, logs, Vite)
@@ -100,10 +101,19 @@ curl -X POST http://localhost:8000/api/v1/sms/send \
   -H "X-API-Key: sk_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "to": "+25377123456",
+    "to": "77123456",
     "message": "Hello from ApiSMS Gateway!",
-    "from": "+25377000000"
+    "from": "DPCR"
   }'
+
+# Multiple number formats supported:
+# "to": "+25377123456"  (international)
+# "to": "25377123456"   (without +)  
+# "to": "77123456"      (national)
+
+# Sender options:
+# "from": "DPCR"        (text, max 11 chars)
+# "from": "77000000"    (phone number)
 ```
 
 ### Check SMS Status  
@@ -183,7 +193,8 @@ Configure Kannel to send callbacks:
 
 ### Common Issues
 - **Kannel Connection**: Test with `php artisan sms:test --check-connectivity`
-- **Invalid Phone**: Ensure Djibouti format +253XXXXXXXX  
+- **Invalid Phone**: Use formats +253XXXXXXXX, 253XXXXXXXX, or 77XXXXXX
+- **Invalid Sender**: Use text (max 11 chars) or phone number format
 - **Rate Limits**: Check client rate_limit settings in database
 - **Webhooks**: Verify Kannel DLR/MO URLs are configured correctly
 - **Authentication**: Confirm API key is active and belongs to client

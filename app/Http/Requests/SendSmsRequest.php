@@ -28,7 +28,7 @@ class SendSmsRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     $kannelService = new KannelService();
                     if (!$kannelService->isValidPhoneNumber($value)) {
-                        $fail('The ' . $attribute . ' must be a valid Djibouti phone number (+253XXXXXXXX).');
+                        $fail('The ' . $attribute . ' must be a valid phone number (+253XXXXXXXX or 77XXXXXX).');
                     }
                 },
             ],
@@ -41,12 +41,12 @@ class SendSmsRequest extends FormRequest
             'from' => [
                 'nullable',
                 'string',
-                'max:20',
+                'max:11',
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         $kannelService = new KannelService();
-                        if (!$kannelService->isValidPhoneNumber($value)) {
-                            $fail('The ' . $attribute . ' must be a valid Djibouti phone number (+253XXXXXXXX).');
+                        if (!$kannelService->isValidSender($value)) {
+                            $fail('The ' . $attribute . ' must be a valid phone number or text (max 11 chars).');
                         }
                     }
                 },

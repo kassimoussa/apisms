@@ -76,10 +76,44 @@ return [
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
-            'username' => env('LOG_SLACK_USERNAME', 'Laravel Log'),
-            'emoji' => env('LOG_SLACK_EMOJI', ':boom:'),
-            'level' => env('LOG_LEVEL', 'critical'),
+            'username' => env('LOG_SLACK_USERNAME', 'ApiSMS Gateway'),
+            'emoji' => env('LOG_SLACK_EMOJI', ':warning:'),
+            'level' => env('LOG_LEVEL', 'error'),
             'replace_placeholders' => true,
+        ],
+
+        'json' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/app.json'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+            'formatter_with' => [
+                'includeStacktraces' => env('LOG_JSON_INCLUDE_STACKTRACES', true),
+            ],
+        ],
+
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.log'),
+            'level' => 'info',
+            'days' => 90,
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+        ],
+
+        'sms' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/sms.log'),
+            'level' => 'info',
+            'days' => 30,
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+        ],
+
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'warning',
+            'days' => 180,
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
         ],
 
         'papertrail' => [
