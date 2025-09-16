@@ -7,11 +7,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use App\Services\ApiKeyEncryptionService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class Client extends Model
 {
     protected $fillable = [
         'name',
+        'username',
+        'password',
+        'last_login_at',
+        'status',
         'api_key_hash',
         'api_key_encrypted',
         'api_key_expires_at',
@@ -141,5 +146,37 @@ class Client extends Model
                         $q->whereNull('api_key_expires_at')
                           ->orWhere('api_key_expires_at', '>', now());
                     });
+    }
+
+    /**
+     * Authentication methods for web interface
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active' && $this->active;
+    }
+
+    public function setPassword(string $password): void
+    {
+        $this->password = Hash::make($password);
+        $this->save();
+    }
+
+    public function checkPassword(string $password): bool
+    {
+        return Hash::check($password, $this->password);
+    }
+
+    public function updateLastLogin(): void
+    {
+        $this->last_login_at = now();
+        $this->save();
+    }
+
+    public static function findByUsername(string $username): ?Client
+    {
+        return static::where('username', $username)
+                    ->where('status', 'active')
+                    ->first();
     }
 }

@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auth.api.client' => \App\Http\Middleware\AuthenticateApiClient::class,
+            'auth.web.client' => \App\Http\Middleware\AuthenticateWebClient::class,
+            'auth.web.admin' => \App\Http\Middleware\AuthenticateWebAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

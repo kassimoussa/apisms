@@ -16,6 +16,7 @@ class ClientManager extends Component
     public $allowed_ips = '';
     public $showCreateForm = false;
     public $selectedClient = null;
+    public $revealedKeys = []; // Track which keys are revealed
 
     public function toggleCreateForm()
     {
@@ -61,8 +62,31 @@ class ClientManager extends Component
     {
         $client = Client::find($clientId);
         if ($client) {
-            $client->regenerateApiKey();
+            $newKey = $client->regenerateApiKey();
+            // Temporarily store the new key to show it to the user
+            session()->flash('newApiKey', $newKey);
             session()->flash('message', "API key regenerated for {$client->name}");
+        }
+    }
+
+    public function toggleKeyVisibility($clientId)
+    {
+        if (in_array($clientId, $this->revealedKeys)) {
+            $this->revealedKeys = array_diff($this->revealedKeys, [$clientId]);
+        } else {
+            $this->revealedKeys[] = $clientId;
+        }
+    }
+
+    public function copyApiKey($clientId)
+    {
+        $client = Client::find($clientId);
+        if ($client) {
+            $plainKey = $client->getDecryptedApiKey();
+            if ($plainKey) {
+                // Emit event to frontend to copy to clipboard
+                $this->dispatch('copyToClipboard', $plainKey);
+            }
         }
     }
 

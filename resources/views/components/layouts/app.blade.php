@@ -42,14 +42,26 @@
                                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium {{ request()->routeIs('admin.test') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }}">
                                 Test SMS
                             </a>
+                            <a href="{{ route('admin.responses') }}" 
+                               class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium {{ request()->routeIs('admin.responses') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }}">
+                                📥 Responses
+                            </a>
                         </div>
                     </div>
-                    <div class="flex items-center">
+                    <div class="flex items-center space-x-4">
+                        @if(session('admin_name'))
+                            <span class="text-sm text-gray-600">{{ session('admin_name') }}</span>
+                        @endif
                         <div class="flex-shrink-0">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 Online
                             </span>
                         </div>
+                        @if(session('admin_id'))
+                            <a href="{{ route('logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-xs font-medium">
+                                Logout
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

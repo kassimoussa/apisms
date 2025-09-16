@@ -3,14 +3,51 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebhookController;
 
-Route::get('/', function () {
-    return redirect()->route('admin.dashboard');
+// Main login page - UNIFIED for both admin and client
+Route::get('/', \App\Livewire\UnifiedLogin::class)->name('login');
+Route::get('/login', \App\Livewire\UnifiedLogin::class)->name('unified.login');
+
+// Logout routes
+Route::get('/logout', function() {
+    session()->flush();
+    return redirect()->route('login')->with('success', 'Déconnecté avec succès');
+})->name('logout');
+
+// Legacy routes (redirects for backward compatibility)
+Route::get('/admin/login', function() {
+    return redirect()->route('login');
+})->name('admin.login');
+Route::get('/client/login', function() {
+    return redirect()->route('login');
+})->name('client.login');
+Route::get('/admin/logout', function() {
+    return redirect()->route('logout');
+})->name('admin.logout');
+Route::get('/client/logout', function() {
+    return redirect()->route('logout');  
+})->name('client.logout');
+
+// Admin routes - PROTECTED with admin authentication
+Route::middleware(['auth.web.admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('admin.dashboard');
+    Route::get('/clients', \App\Livewire\ClientManager::class)->name('admin.clients');
+    Route::get('/test', \App\Livewire\SmsTest::class)->name('admin.test');
+    Route::get('/responses', \App\Livewire\SmsResponses::class)->name('admin.responses');
 });
 
-// Admin routes
-Route::get('/admin/dashboard', \App\Livewire\Dashboard::class)->name('admin.dashboard');
-Route::get('/admin/clients', \App\Livewire\ClientManager::class)->name('admin.clients');
-Route::get('/admin/test', \App\Livewire\SmsTest::class)->name('admin.test');
+// Temporary success page
+Route::get('/client/dashboard-temp', function() {
+    return '<h1>✅ Login Success! Welcome ' . session('client_name') . '</h1><p>Client ID: ' . session('client_id') . '</p><a href="/logout">Logout</a>';
+});
+
+// Protected client routes
+Route::middleware(['auth.web.client'])->prefix('client')->group(function () {
+    Route::get('/dashboard', \App\Livewire\Client\Dashboard::class)->name('client.dashboard');
+    Route::get('/bulk-sms', \App\Livewire\BulkSmsManager::class)->name('client.bulk-sms');
+    Route::get('/campaigns', \App\Livewire\Client\Campaigns::class)->name('client.campaigns');
+    Route::get('/statistics', \App\Livewire\Client\Statistics::class)->name('client.statistics');
+    Route::get('/api-keys', \App\Livewire\Client\ApiKeys::class)->name('client.api-keys');
+});
 
 // Webhook endpoints for Kannel callbacks
 Route::prefix('webhooks/kannel')->group(function () {

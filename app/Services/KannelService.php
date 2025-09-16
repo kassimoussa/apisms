@@ -58,6 +58,8 @@ class KannelService
             'from' => $from,
             'to' => $to,
             'text' => $text,
+            'charset' => 'UTF-8', // Support emoji and accents
+            'coding' => '2', // UCS2 encoding for Unicode
             'dlr-mask' => '31', // Request delivery reports
             'dlr-url' => route('webhooks.kannel.dlr', ['id' => '%i', 'status' => '%d']),
         ];
@@ -154,6 +156,15 @@ class KannelService
     private function makeKannelRequest(array $params, string $to, string $from, string $requestId): array
     {
         $startTime = microtime(true);
+        
+        // Log the exact parameters being sent to Kannel
+        Log::debug('Kannel request parameters', [
+            'request_id' => $requestId,
+            'params' => $params,
+            'text_length' => strlen($params['text']),
+            'charset' => $params['charset'] ?? 'not_set',
+            'coding' => $params['coding'] ?? 'not_set',
+        ]);
         
         $response = $this->client->get($this->baseUrl, [
             'query' => $params,

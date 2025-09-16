@@ -27,6 +27,23 @@
         </div>
     @endif
 
+    <!-- New API Key Alert -->
+    @if (session()->has('newApiKey'))
+        <div class="mb-6 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
+            <div class="flex items-center justify-between">
+                <div>
+                    <strong>🔑 New API Key Generated:</strong>
+                    <code class="bg-blue-200 px-2 py-1 rounded text-sm">{{ session('newApiKey') }}</code>
+                </div>
+                <button data-copy-text="{{ session('newApiKey') }}" 
+                        class="text-blue-600 hover:text-blue-800 text-sm">
+                    📋 Copy
+                </button>
+            </div>
+            <p class="text-xs mt-2">⚠️ Save this key securely - it won't be shown again!</p>
+        </div>
+    @endif
+
     <!-- Create Client Form -->
     @if($showCreateForm)
         <div class="mb-8 bg-white shadow rounded-lg p-6">
@@ -123,10 +140,34 @@
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
                                         <label class="block text-xs font-medium text-gray-700 mb-1">API Key</label>
-                                        <code class="text-sm text-gray-900 font-mono">{{ $client->api_key }}</code>
+                                        <div class="flex items-center space-x-2">
+                                            @if(in_array($client->id, $revealedKeys))
+                                                <code class="text-sm text-gray-900 font-mono">{{ $client->getDecryptedApiKey() ?: 'Error: Cannot decrypt key' }}</code>
+                                                <button wire:click="toggleKeyVisibility({{ $client->id }})" 
+                                                        class="text-xs text-gray-500 hover:text-gray-700">
+                                                    👁️ Hide
+                                                </button>
+                                            @else
+                                                <code class="text-sm text-gray-900 font-mono">{{ $client->getMaskedApiKey() ?: 'No API key found' }}</code>
+                                                <button wire:click="toggleKeyVisibility({{ $client->id }})" 
+                                                        class="text-xs text-indigo-600 hover:text-indigo-800">
+                                                    👁️ Show
+                                                </button>
+                                            @endif
+                                        </div>
+                                        @if($client->api_key_expires_at)
+                                            <div class="text-xs text-gray-500 mt-1">
+                                                Expires: {{ $client->api_key_expires_at->format('Y-m-d') }}
+                                                @if($client->isApiKeyExpired())
+                                                    <span class="text-red-600 font-medium">🔴 EXPIRED</span>
+                                                @elseif($client->api_key_expires_at->diffInDays(now()) < 30)
+                                                    <span class="text-yellow-600 font-medium">🟡 Expires soon</span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="ml-4">
-                                        <button onclick="navigator.clipboard.writeText('{{ $client->api_key }}')"
+                                        <button wire:click="copyApiKey({{ $client->id }})"
                                                 class="text-indigo-600 hover:text-indigo-900 text-sm">
                                             📋 Copy
                                         </button>
@@ -178,4 +219,103 @@
             </div>
         @endif
     </div>
+
+    <!-- JavaScript for clipboard functionality -->
+    <script>
+        // Helper function to show success message
+        function showCopySuccess(message = '✅ API key copied to clipboard!') {
+            const successMsg = document.createElement('div');
+            successMsg.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded shadow z-50';
+            successMsg.innerHTML = message;
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                if (successMsg.parentNode) {
+                    successMsg.parentNode.removeChild(successMsg);
+                }
+            }, 3000);
+        }
+
+        // Helper function to copy text with multiple fallbacks
+        function copyToClipboard(text) {
+            console.log('Attempting to copy:', text.substring(0, 10) + '...');
+            
+            // Method 1: Modern Clipboard API (works in secure contexts)
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(text).then(() => {
+                    console.log('Clipboard API copy successful');
+                    showCopySuccess();
+                }).catch((err) => {
+                    console.warn('Clipboard API failed, trying fallback:', err);
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                console.log('Clipboard API not available, using fallback');
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        // Fallback method using execCommand
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            
+            // Avoid scrolling to bottom
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    console.log('Fallback copy successful');
+                    showCopySuccess();
+                } else {
+                    console.error('execCommand copy failed');
+                    showManualCopyPrompt(text);
+                }
+            } catch (err) {
+                console.error('execCommand error:', err);
+                showManualCopyPrompt(text);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Final fallback: show the key in a prompt for manual copy
+        function showManualCopyPrompt(text) {
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (userAgent.includes('mobile') || userAgent.includes('android') || userAgent.includes('iphone')) {
+                // Mobile devices: show in a prompt
+                prompt('Copy this API key manually:', text);
+            } else {
+                // Desktop: show in alert with instructions
+                alert('Please copy this API key manually:\n\n' + text + '\n\n(The text has been selected for you)');
+            }
+        }
+
+        // Initialize Livewire listeners
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('copyToClipboard', (data) => {
+                const key = Array.isArray(data) ? data[0] : data;
+                copyToClipboard(key);
+            });
+        });
+
+        // Also handle direct button clicks (for new API key alerts)
+        document.addEventListener('DOMContentLoaded', () => {
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('[data-copy-text]')) {
+                    e.preventDefault();
+                    const copyText = e.target.closest('[data-copy-text]').getAttribute('data-copy-text');
+                    copyToClipboard(copyText);
+                }
+            });
+        });
+    </script>
 </div>

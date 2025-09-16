@@ -26,6 +26,13 @@ Route::prefix('v1')->group(function () {
         Route::get('sms', [SmsController::class, 'index'])->name('api.sms.index');
         Route::get('sms/{id}/status', [SmsController::class, 'status'])->name('api.sms.status');
         
+        // Bulk SMS endpoints
+        Route::post('sms/bulk', [\App\Http\Controllers\Api\BulkSmsController::class, 'create'])->name('api.sms.bulk.create');
+        Route::get('sms/bulk', [\App\Http\Controllers\Api\BulkSmsController::class, 'list'])->name('api.sms.bulk.list');
+        Route::get('sms/bulk/{jobId}', [\App\Http\Controllers\Api\BulkSmsController::class, 'status'])->name('api.sms.bulk.status');
+        Route::post('sms/bulk/{jobId}/pause', [\App\Http\Controllers\Api\BulkSmsController::class, 'pause'])->name('api.sms.bulk.pause');
+        Route::post('sms/bulk/{jobId}/resume', [\App\Http\Controllers\Api\BulkSmsController::class, 'resume'])->name('api.sms.bulk.resume');
+        
         // Statistics endpoints
         Route::get('stats', [StatsController::class, 'index'])->name('api.stats');
         Route::get('stats/realtime', [StatsController::class, 'realtime'])->name('api.stats.realtime');
