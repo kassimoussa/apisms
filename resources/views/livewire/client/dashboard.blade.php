@@ -1,25 +1,25 @@
 <div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="md:flex md:items-center md:justify-between">
             <div class="flex-1 min-w-0">
                 <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                    Welcome back, {{ $client->name }}!
+                    Bienvenue, {{ $client->name }} !
                 </h2>
                 <p class="mt-1 text-sm text-gray-500">
-                    Here's your SMS campaign overview
+                    Voici l'aperçu de vos campagnes SMS
                 </p>
             </div>
             <div class="mt-4 flex md:mt-0 md:ml-4">
                 <a href="{{ route('client.bulk-sms') }}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    📤 New Campaign
+                    📤 Nouvelle Campagne
                 </a>
             </div>
         </div>
 
         <!-- Today's Stats -->
         <div class="mt-8">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Today's Statistics</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Statistiques d'Aujourd'hui</h3>
             <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <!-- Sent SMS -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
@@ -30,7 +30,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">SMS Sent</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">SMS Envoyés</dt>
                                     <dd class="text-lg font-medium text-gray-900">{{ number_format($todayStats['sent']) }}</dd>
                                 </dl>
                             </div>
@@ -47,7 +47,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Failed SMS</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">SMS Échoués</dt>
                                     <dd class="text-lg font-medium text-red-600">{{ number_format($todayStats['failed']) }}</dd>
                                 </dl>
                             </div>
@@ -64,7 +64,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Pending SMS</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">SMS En Attente</dt>
                                     <dd class="text-lg font-medium text-yellow-600">{{ number_format($todayStats['pending']) }}</dd>
                                 </dl>
                             </div>
@@ -81,7 +81,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Campaigns</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Campagnes</dt>
                                     <dd class="text-lg font-medium text-gray-900">{{ number_format($todayStats['campaigns']) }}</dd>
                                 </dl>
                             </div>
@@ -93,7 +93,7 @@
 
         <!-- Week Stats -->
         <div class="mt-8">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">This Week's Performance</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Performance de Cette Semaine</h3>
             <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-3">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 overflow-hidden shadow rounded-lg">
                     <div class="p-5">
@@ -103,7 +103,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-blue-100 truncate">Total Sent</dt>
+                                    <dt class="text-sm font-medium text-blue-100 truncate">Total Envoyés</dt>
                                     <dd class="text-2xl font-bold text-white">{{ number_format($weekStats['sent']) }}</dd>
                                 </dl>
                             </div>
@@ -119,7 +119,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-red-100 truncate">Total Failed</dt>
+                                    <dt class="text-sm font-medium text-red-100 truncate">Total Échoués</dt>
                                     <dd class="text-2xl font-bold text-white">{{ number_format($weekStats['failed']) }}</dd>
                                 </dl>
                             </div>
@@ -135,7 +135,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-green-100 truncate">Campaigns</dt>
+                                    <dt class="text-sm font-medium text-green-100 truncate">Campagnes</dt>
                                     <dd class="text-2xl font-bold text-white">{{ number_format($weekStats['campaigns']) }}</dd>
                                 </dl>
                             </div>
@@ -152,25 +152,25 @@
                     <div class="flex items-center">
                         <span class="text-2xl mr-3">🔑</span>
                         <div>
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">API Key Status</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Statut de la Clé API</h3>
                             <p class="text-sm text-gray-500">
                                 @if($client->api_key_hash)
                                     @if($client->isApiKeyExpired())
-                                        <span class="text-red-600 font-semibold">Your API key has expired</span>
+                                        <span class="text-red-600 font-semibold">Votre clé API a expiré</span>
                                     @else
-                                        <span class="text-green-600">Your API key is active</span>
+                                        <span class="text-green-600">Votre clé API est active</span>
                                         @if($client->api_key_expires_at)
-                                            • Expires {{ $client->api_key_expires_at->diffForHumans() }}
+                                            • Expire {{ $client->api_key_expires_at->diffForHumans() }}
                                         @endif
                                     @endif
                                 @else
-                                    <span class="text-yellow-600">No API key configured</span>
+                                    <span class="text-yellow-600">Aucune clé API configurée</span>
                                 @endif
                             </p>
                         </div>
                     </div>
                     <a href="{{ route('client.api-keys') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">
-                        Manage Keys
+                        Gérer les Clés
                     </a>
                 </div>
                 
@@ -185,9 +185,9 @@
         <!-- Recent Campaigns -->
         <div class="mt-8">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Campaigns</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Campagnes Récentes</h3>
                 <a href="{{ route('client.campaigns') }}" class="text-sm text-blue-600 hover:text-blue-500">
-                    View all campaigns →
+                    Voir toutes les campagnes →
                 </a>
             </div>
             <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md">
@@ -220,9 +220,9 @@
                                             <div class="ml-4">
                                                 <div class="text-sm font-medium text-gray-900">{{ $campaign['name'] }}</div>
                                                 <div class="text-sm text-gray-500">
-                                                    {{ $campaign['sent'] }}/{{ $campaign['total'] }} sent
+                                                    {{ $campaign['sent'] }}/{{ $campaign['total'] }} envoyés
                                                     @if($campaign['failed'] > 0)
-                                                        • {{ $campaign['failed'] }} failed
+                                                        • {{ $campaign['failed'] }} échoués
                                                     @endif
                                                 </div>
                                             </div>
@@ -246,11 +246,11 @@
                 @else
                     <div class="text-center py-12">
                         <span class="text-4xl">📭</span>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">No campaigns yet</h3>
-                        <p class="mt-1 text-sm text-gray-500">Get started by creating your first bulk SMS campaign.</p>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune campagne pour l'instant</h3>
+                        <p class="mt-1 text-sm text-gray-500">Commencez par créer votre première campagne SMS en masse.</p>
                         <div class="mt-6">
                             <a href="{{ route('client.bulk-sms') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                📤 Create Campaign
+                                📤 Créer une Campagne
                             </a>
                         </div>
                     </div>

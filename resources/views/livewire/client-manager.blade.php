@@ -7,6 +7,10 @@
                 <p class="mt-1 text-sm text-gray-500">
                     Manage API clients, generate keys, and configure access controls
                 </p>
+                <!-- Debug info -->
+                <div class="text-xs text-gray-400 mt-1">
+                    Debug: Current time is {{ now()->format('Y-m-d H:i:s') }}
+                </div>
             </div>
             <div>
                 <button wire:click="toggleCreateForm" 
@@ -14,7 +18,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Add Client
+                    Ajouter Client
                 </button>
             </div>
         </div>
@@ -24,6 +28,13 @@
     @if (session()->has('message'))
         <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
             {{ session('message') }}
+        </div>
+    @endif
+
+    <!-- Error Message -->
+    @if (session()->has('error'))
+        <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -46,179 +57,914 @@
 
     <!-- Create Client Form -->
     @if($showCreateForm)
-        <div class="mb-8 bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Create New Client</h3>
-            
-            <form wire:submit.prevent="createClient" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="mb-8 bg-white shadow rounded-lg">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Créer un Nouveau Client</h3>
+                
+                <!-- Progress Steps -->
+                <div class="mt-4">
+                    <div class="flex items-center">
+                        @for($i = 1; $i <= 4; $i++)
+                            <div class="flex items-center {{ $i > 1 ? 'ml-8' : '' }}">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full {{ $currentStep >= $i ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600' }}">
+                                    {{ $i }}
+                                </div>
+                                <div class="ml-3 text-sm {{ $currentStep >= $i ? 'text-indigo-600 font-medium' : 'text-gray-500' }}">
+                                    @if($i == 1) Infos de Base
+                                    @elseif($i == 2) Détails Contact
+                                    @elseif($i == 3) Facturation & Limites
+                                    @else Paramètres Techniques
+                                    @endif
+                                </div>
+                                @if($i < 4)
+                                    <div class="w-16 h-0.5 ml-8 {{ $currentStep > $i ? 'bg-indigo-600' : 'bg-gray-300' }}"></div>
+                                @endif
+                            </div>
+                        @endfor
+                    </div>
+                </div>
+            </div>
+
+            <form wire:submit.prevent="createClient" class="p-6">
+                <!-- Étape 1: Informations de Base -->
+                @if($currentStep == 1)
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nom du Client *</label>
+                                <input wire:model="name" type="text" 
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="ex: Gestion de Flotte DPCR">
+                                @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nom d'utilisateur *</label>
+                                <input wire:model="username" type="text"
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="nom_utilisateur_unique">
+                                @error('username') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe *</label>
+                                <input wire:model="password" type="password"
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="Minimum 6 caractères">
+                                @error('password') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Type de Client</label>
+                                <select wire:model="client_type"
+                                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="individual">Individual</option>
+                                    <option value="business">Business</option>
+                                    <option value="enterprise">Enterprise</option>
+                                </select>
+                                @error('client_type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea wire:model="description" rows="3"
+                                      class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                      placeholder="Brève description de l'objectif du client"></textarea>
+                            @error('description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Étape 2: Détails de Contact -->
+                @if($currentStep == 2)
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input wire:model="email" type="email"
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="client@exemple.com">
+                                @error('email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                                <input wire:model="phone" type="text"
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="+25377123456">
+                                @error('phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Entreprise</label>
+                                <input wire:model="company" type="text"
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="Nom de l'Entreprise">
+                                @error('company') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Secteur</label>
+                                <input wire:model="industry" type="text"
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="ex: Technologie, Santé">
+                                @error('industry') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Site Web</label>
+                                <input wire:model="website" type="url"
+                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                       placeholder="https://exemple.com">
+                                @error('website') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                            <textarea wire:model="address" rows="3"
+                                      class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                      placeholder="Adresse complète"></textarea>
+                            @error('address') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Étape 3: Facturation & Limites -->
+                @if($currentStep == 3)
+                    <div class="space-y-6">
+                        <!-- Billing Information -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-900 mb-4">💰 Informations de Facturation</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Solde Initial</label>
+                                    <input wire:model="balance" type="number" step="0.01" min="0"
+                                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @error('balance') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Limite de Crédit</label>
+                                    <input wire:model="credit_limit" type="number" step="0.01" min="0"
+                                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @error('credit_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                                    <select wire:model="currency"
+                                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        <option value="EUR">EUR</option>
+                                        <option value="USD">USD</option>
+                                        <option value="XOF">XOF</option>
+                                    </select>
+                                    @error('currency') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMS Limits -->
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-900 mb-4">📱 Limites SMS</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Limite SMS Quotidienne</label>
+                                    <input wire:model="daily_sms_limit" type="number" min="1"
+                                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @error('daily_sms_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Limite SMS Mensuelle</label>
+                                    <input wire:model="monthly_sms_limit" type="number" min="1"
+                                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @error('monthly_sms_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Rate Limit (per min)</label>
+                                    <input wire:model="rate_limit" type="number" min="1" max="1000"
+                                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @error('rate_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Auto-recharge -->
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-medium text-gray-900">🔄 Recharge Automatique</h4>
+                                <label class="inline-flex items-center">
+                                    <input wire:model="auto_recharge" type="checkbox" 
+                                           class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <span class="ml-2 text-sm text-gray-600">Enable auto-recharge</span>
+                                </label>
+                            </div>
+                            
+                            @if($auto_recharge)
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Recharge Amount</label>
+                                        <input wire:model="auto_recharge_amount" type="number" step="0.01" min="0"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('auto_recharge_amount') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Threshold</label>
+                                        <input wire:model="auto_recharge_threshold" type="number" step="0.01" min="0"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('auto_recharge_threshold') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Trial Period -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">🎯 Trial End Date (optional)</label>
+                            <input wire:model="trial_ends_at" type="date"
+                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @error('trial_ends_at') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Étape 4: Paramètres Techniques -->
+                @if($currentStep == 4)
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">🔒 Allowed IPs (optional)</label>
+                            <input wire:model="allowed_ips" type="text"
+                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                   placeholder="192.168.1.1, 10.0.0.1 (séparées par virgules)">
+                            @error('allowed_ips') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            <p class="text-xs text-gray-500 mt-1">Leave empty to allow all IPs</p>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-900 mb-3">📋 Summary</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <strong>Name:</strong> {{ $name ?: 'Not specified' }}<br>
+                                    <strong>Type:</strong> {{ ucfirst($client_type) }}<br>
+                                    <strong>Username:</strong> {{ $username ?: 'Not specified' }}
+                                </div>
+                                <div>
+                                    <strong>Limite SMS Quotidienne:</strong> {{ number_format($daily_sms_limit) }}<br>
+                                    <strong>Limite SMS Mensuelle:</strong> {{ number_format($monthly_sms_limit) }}<br>
+                                    <strong>Rate Limit:</strong> {{ $rate_limit }}/min
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between mt-8 pt-6 border-t border-gray-200">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Client Name</label>
-                        <input wire:model="name" type="text" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                               placeholder="e.g., DPCR Fleet Management">
-                        @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        @if($currentStep > 1)
+                            <button type="button" wire:click="prevStep"
+                                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                ← Précédent
+                            </button>
+                        @endif
                     </div>
                     
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Rate Limit (per minute)</label>
-                        <input wire:model="rate_limit" type="number" min="1" max="1000"
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        @error('rate_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    <div class="flex space-x-3">
+                        <button type="button" wire:click="toggleCreateForm"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        
+                        @if($currentStep < 4)
+                            <button type="button" wire:click="nextStep"
+                                    class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
+                                Suivant →
+                            </button>
+                        @else
+                            <button type="submit"
+                                    class="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700">
+                                🚀 Créer Client
+                            </button>
+                        @endif
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea wire:model="description" rows="2"
-                              class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                              placeholder="Brief description of the client's purpose"></textarea>
-                    @error('description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Allowed IPs (optional)</label>
-                    <input wire:model="allowed_ips" type="text"
-                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                           placeholder="192.168.1.1, 10.0.0.1 (comma separated)">
-                    @error('allowed_ips') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    <p class="text-xs text-gray-500 mt-1">Leave empty to allow all IPs</p>
-                </div>
-
-                <div class="flex justify-end space-x-3">
-                    <button type="button" wire:click="toggleCreateForm"
-                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
-                        Create Client
-                    </button>
                 </div>
             </form>
         </div>
     @endif
 
-    <!-- Clients List -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">API Clients</h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage your API clients and their access keys</p>
+    <!-- Clients Table -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">📋 Liste des Clients</h3>
+                <p class="mt-1 text-sm text-gray-500">Gérez vos clients API et leurs configurations</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-sm text-gray-500">
+                    Total: <span class="font-medium">{{ $clients->total() }}</span> clients
+                </div>
+                <button wire:click="toggleCreateForm" 
+                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Nouveau Client
+                </button>
+            </div>
         </div>
         
-        <ul class="divide-y divide-gray-200">
-            @forelse($clients as $client)
-                <li class="px-4 py-4 sm:px-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            👤 Client
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            📞 Contact
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            🟢 Statut
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            💰 Utilisation
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            🔐 Clé API
+                        </th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            ⚙️ Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($clients as $client)
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                            <!-- Client Info -->
+                            <td class="px-6 py-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-10 w-10 rounded-full {{ $client->client_type === 'individual' ? 'bg-blue-100' : ($client->client_type === 'business' ? 'bg-green-100' : 'bg-purple-100') }} flex items-center justify-center">
+                                            <span class="text-sm {{ $client->client_type === 'individual' ? 'text-blue-600' : ($client->client_type === 'business' ? 'text-green-600' : 'text-purple-600') }}">
+                                                {{ $client->client_type === 'individual' ? '👤' : ($client->client_type === 'business' ? '🏢' : '🏛️') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-sm font-semibold text-gray-900">
+                                            {{ $client->name ?? 'N/A' }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ $client->username ?? 'N/A' }}
+                                        </div>
+                                        <div class="mt-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $client->client_type === 'individual' ? 'bg-blue-100 text-blue-800' : ($client->client_type === 'business' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800') }}">
+                                                {{ ucfirst($client->client_type ?? 'individual') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Contact -->
+                            <td class="px-6 py-4">
+                                <div class="space-y-1">
+                                    @if($client->email)
+                                        <div class="flex items-center text-sm text-gray-900">
+                                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span class="truncate">{{ $client->email }}</span>
+                                        </div>
+                                    @endif
+                                    @if($client->phone)
+                                        <div class="flex items-center text-sm text-gray-700">
+                                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                            </svg>
+                                            <span>{{ $client->phone }}</span>
+                                        </div>
+                                    @endif
+                                    @if($client->company)
+                                        <div class="flex items-center text-sm text-gray-600">
+                                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                            <span class="truncate">{{ $client->company }}</span>
+                                        </div>
+                                    @endif
+                                    @if(!$client->email && !$client->phone && !$client->company)
+                                        <span class="text-gray-400 text-sm italic">Aucun contact</span>
+                                    @endif
+                                </div>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-6 py-4">
+                                <div class="space-y-2">
                                     @if($client->active)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            🟢 Active
+                                            <span class="w-1.5 h-1.5 mr-1.5 bg-green-400 rounded-full"></span>
+                                            Actif
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            🔴 Inactive
+                                            <span class="w-1.5 h-1.5 mr-1.5 bg-red-400 rounded-full"></span>
+                                            Inactif
                                         </span>
                                     @endif
-                                </div>
-                                <div class="ml-4 flex-1">
-                                    <div class="text-sm font-medium text-gray-900">{{ $client->name }}</div>
-                                    <div class="text-sm text-gray-500">
-                                        {{ $client->description ?: 'No description' }}
+                                    
+                                    @if(method_exists($client, 'isOnTrial') && $client->isOnTrial())
+                                        <div>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                🎯 Période d'essai
+                                            </span>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="text-xs text-gray-500">
+                                        Créé {{ $client->created_at ? $client->created_at->diffForHumans() : 'N/A' }}
                                     </div>
-                                    <div class="text-xs text-gray-400 mt-1">
-                                        Created {{ $client->created_at->diffForHumans() }} • 
-                                        {{ $client->sms_messages_count }} SMS sent •
-                                        Rate limit: {{ $client->rate_limit }}/min
-                                    </div>
                                 </div>
-                            </div>
-                            
-                            <!-- API Key Display -->
-                            <div class="mt-3 bg-gray-50 p-3 rounded-md">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">API Key</label>
-                                        <div class="flex items-center space-x-2">
-                                            @if(in_array($client->id, $revealedKeys))
-                                                <code class="text-sm text-gray-900 font-mono">{{ $client->getDecryptedApiKey() ?: 'Error: Cannot decrypt key' }}</code>
-                                                <button wire:click="toggleKeyVisibility({{ $client->id }})" 
-                                                        class="text-xs text-gray-500 hover:text-gray-700">
-                                                    👁️ Hide
-                                                </button>
+                            </td>
+
+                            <!-- Usage & Billing -->
+                            <td class="px-6 py-4">
+                                <div class="space-y-1">
+                                    <div class="flex items-center text-sm">
+                                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                                        <span class="font-medium">{{ number_format($client->balance ?? 0, 2) }} {{ $client->currency ?? 'EUR' }}</span>
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                                        <span>{{ number_format($client->sms_messages_count ?? 0) }} SMS envoyés</span>
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
+                                        <span>{{ $client->daily_sms_limit ?? 1000 }}/jour</span>
+                                    </div>
+                                    @if($client->credit_limit)
+                                        <div class="text-xs text-gray-500">
+                                            Crédit: {{ number_format($client->credit_limit, 2) }} {{ $client->currency ?? 'EUR' }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
+
+                            <!-- API Key -->
+                            <td class="px-6 py-4">
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        @if(in_array($client->id, $revealedKeys))
+                                            <code class="text-xs font-mono bg-gray-100 px-2 py-1 rounded border flex-1 truncate">
+                                                {{ Str::limit($client->getDecryptedApiKey() ?: 'Erreur', 20) }}
+                                            </code>
+                                        @else
+                                            <code class="text-xs font-mono bg-gray-100 px-2 py-1 rounded border flex-1">
+                                                {{ $client->getMaskedApiKey() ?: 'Pas de clé' }}
+                                            </code>
+                                        @endif
+                                        
+                                        <div class="flex space-x-1">
+                                            <button wire:click="toggleKeyVisibility({{ $client->id }})" 
+                                                    class="p-1 text-gray-400 hover:text-indigo-600 transition-colors" 
+                                                    title="{{ in_array($client->id, $revealedKeys) ? 'Masquer' : 'Afficher' }}">
+                                                @if(in_array($client->id, $revealedKeys))
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                    </svg>
+                                                @endif
+                                            </button>
+                                            
+                                            <button wire:click="copyApiKey({{ $client->id }})"
+                                                    class="p-1 text-gray-400 hover:text-indigo-600 transition-colors" 
+                                                    title="Copier">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    @if($client->api_key_expires_at)
+                                        <div class="text-xs">
+                                            @if(method_exists($client, 'isApiKeyExpired') && $client->isApiKeyExpired())
+                                                <span class="text-red-600 font-medium">🔴 Expirée</span>
+                                            @elseif(now()->diffInDays($client->api_key_expires_at) <= 30)
+                                                <span class="text-yellow-600 font-medium">🟡 Expire bientôt</span>
                                             @else
-                                                <code class="text-sm text-gray-900 font-mono">{{ $client->getMaskedApiKey() ?: 'No API key found' }}</code>
-                                                <button wire:click="toggleKeyVisibility({{ $client->id }})" 
-                                                        class="text-xs text-indigo-600 hover:text-indigo-800">
-                                                    👁️ Show
-                                                </button>
+                                                <span class="text-gray-500">Exp: {{ $client->api_key_expires_at->format('d/m/Y') }}</span>
                                             @endif
                                         </div>
-                                        @if($client->api_key_expires_at)
-                                            <div class="text-xs text-gray-500 mt-1">
-                                                Expires: {{ $client->api_key_expires_at->format('Y-m-d') }}
-                                                @if($client->isApiKeyExpired())
-                                                    <span class="text-red-600 font-medium">🔴 EXPIRED</span>
-                                                @elseif($client->api_key_expires_at->diffInDays(now()) < 30)
-                                                    <span class="text-yellow-600 font-medium">🟡 Expires soon</span>
-                                                @endif
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="ml-4">
-                                        <button wire:click="copyApiKey({{ $client->id }})"
-                                                class="text-indigo-600 hover:text-indigo-900 text-sm">
-                                            📋 Copy
-                                        </button>
-                                    </div>
+                                    @endif
                                 </div>
-                                
-                                @if($client->allowed_ips)
-                                    <div class="mt-2">
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">Allowed IPs</label>
-                                        <div class="text-sm text-gray-600">
-                                            @foreach($client->allowed_ips as $ip)
-                                                <span class="inline-block bg-gray-200 rounded px-2 py-1 text-xs mr-1">{{ $ip }}</span>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                        
-                        <!-- Actions -->
-                        <div class="ml-6 flex flex-col space-y-2">
-                            <button wire:click="toggleClient({{ $client->id }})"
-                                    class="text-sm {{ $client->active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }}">
-                                {{ $client->active ? '🛑 Deactivate' : '✅ Activate' }}
-                            </button>
-                            
-                            <button wire:click="regenerateApiKey({{ $client->id }})"
-                                    onclick="return confirm('Are you sure? This will invalidate the current API key.')"
-                                    class="text-sm text-indigo-600 hover:text-indigo-900">
-                                🔄 Regenerate Key
-                            </button>
-                        </div>
-                    </div>
-                </li>
-            @empty
-                <li class="px-4 py-8 sm:px-6 text-center">
-                    <div class="text-gray-500">
-                        <p class="text-sm">No API clients found</p>
-                        <p class="text-xs mt-1">Create your first client to get started</p>
-                    </div>
-                </li>
-            @endforelse
-        </ul>
-        
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <!-- View Profile -->
+                                    <a href="{{ route('admin.clients.profile', $client) }}"
+                                       class="inline-flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md transition-all duration-150" 
+                                       title="Voir le profil">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
+
+                                    <!-- Edit -->
+                                    <button wire:click="editClient({{ $client->id }})"
+                                            class="inline-flex items-center justify-center w-8 h-8 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-md transition-all duration-150" 
+                                            title="Modifier">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+
+                                    <!-- Toggle Status -->
+                                    <button wire:click="toggleClient({{ $client->id }})"
+                                            class="inline-flex items-center justify-center w-8 h-8 {{ $client->active ? 'text-red-600 hover:text-red-900 hover:bg-red-50' : 'text-green-600 hover:text-green-900 hover:bg-green-50' }} rounded-md transition-all duration-150"
+                                            title="{{ $client->active ? 'Désactiver' : 'Activer' }}">
+                                        @if($client->active)
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        @endif
+                                    </button>
+
+                                    <!-- Delete -->
+                                    <button wire:click="deleteClient({{ $client->id }})"
+                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.')"
+                                            class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-all duration-150" 
+                                            title="Supprimer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+
+                                    <!-- Regenerate API Key -->
+                                    <button wire:click="regenerateApiKey({{ $client->id }})"
+                                            onclick="return confirm('Êtes-vous sûr ? Cela invalidera la clé API actuelle.')"
+                                            class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-all duration-150" 
+                                            title="Régénérer la clé API">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <svg class="w-12 h-12 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <div class="mt-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Aucun client</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Commencez par créer votre premier client API.</p>
+                                    <button wire:click="toggleCreateForm" 
+                                            class="mt-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                        Créer un client
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
         <!-- Pagination -->
         @if($clients->hasPages())
-            <div class="px-4 py-3 border-t border-gray-200">
+            <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
                 {{ $clients->links() }}
             </div>
         @endif
     </div>
+
+    <!-- Edit Client Form Modal -->
+    @if($showEditForm)
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-6xl shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-medium text-gray-900">Edit Client</h3>
+                        <button wire:click="cancelEdit" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Progress Steps -->
+                    <div class="mb-6">
+                        <div class="flex items-center">
+                            @for($i = 1; $i <= 4; $i++)
+                                <div class="flex items-center {{ $i > 1 ? 'ml-8' : '' }}">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-full {{ $currentStep >= $i ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600' }}">
+                                        {{ $i }}
+                                    </div>
+                                    <div class="ml-3 text-sm {{ $currentStep >= $i ? 'text-indigo-600 font-medium' : 'text-gray-500' }}">
+                                        @if($i == 1) Basic Info
+                                        @elseif($i == 2) Contact Details
+                                        @elseif($i == 3) Billing & Limits
+                                        @else Technical Settings
+                                        @endif
+                                    </div>
+                                    @if($i < 4)
+                                        <div class="w-16 h-0.5 ml-8 {{ $currentStep > $i ? 'bg-indigo-600' : 'bg-gray-300' }}"></div>
+                                    @endif
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+
+                    <form wire:submit.prevent="updateClient" class="space-y-6">
+                        <!-- Étape 1: Informations de Base -->
+                        @if($currentStep == 1)
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom du Client *</label>
+                                        <input wire:model="name" type="text" 
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom d'utilisateur *</label>
+                                        <input wire:model="username" type="text"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('username') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Type de Client</label>
+                                        <select wire:model="client_type"
+                                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            <option value="individual">Individual</option>
+                                            <option value="business">Business</option>
+                                            <option value="enterprise">Enterprise</option>
+                                        </select>
+                                        @error('client_type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                    <textarea wire:model="description" rows="3"
+                                              class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                    @error('description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Étape 2: Détails de Contact -->
+                        @if($currentStep == 2)
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                        <input wire:model="email" type="email"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                                        <input wire:model="phone" type="text"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Entreprise</label>
+                                        <input wire:model="company" type="text"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('company') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Secteur</label>
+                                        <input wire:model="industry" type="text"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('industry') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Site Web</label>
+                                        <input wire:model="website" type="url"
+                                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        @error('website') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                                    <textarea wire:model="address" rows="3"
+                                              class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                    @error('address') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Étape 3: Facturation & Limites -->
+                        @if($currentStep == 3)
+                            <div class="space-y-6">
+                                <!-- Billing Information -->
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="text-sm font-medium text-gray-900 mb-4">💰 Informations de Facturation</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Balance</label>
+                                            <input wire:model="balance" type="number" step="0.01" min="0"
+                                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            @error('balance') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Limite de Crédit</label>
+                                            <input wire:model="credit_limit" type="number" step="0.01" min="0"
+                                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            @error('credit_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                                            <select wire:model="currency"
+                                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="EUR">EUR</option>
+                                                <option value="USD">USD</option>
+                                                <option value="XOF">XOF</option>
+                                            </select>
+                                            @error('currency') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SMS Limits -->
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="text-sm font-medium text-gray-900 mb-4">📱 Limites SMS</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Limite SMS Quotidienne</label>
+                                            <input wire:model="daily_sms_limit" type="number" min="1"
+                                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            @error('daily_sms_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Limite SMS Mensuelle</label>
+                                            <input wire:model="monthly_sms_limit" type="number" min="1"
+                                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            @error('monthly_sms_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Rate Limit (per min)</label>
+                                            <input wire:model="rate_limit" type="number" min="1" max="1000"
+                                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            @error('rate_limit') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Auto-recharge -->
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h4 class="text-sm font-medium text-gray-900">🔄 Recharge Automatique</h4>
+                                        <label class="inline-flex items-center">
+                                            <input wire:model="auto_recharge" type="checkbox" 
+                                                   class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            <span class="ml-2 text-sm text-gray-600">Enable auto-recharge</span>
+                                        </label>
+                                    </div>
+                                    
+                                    @if($auto_recharge)
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Recharge Amount</label>
+                                                <input wire:model="auto_recharge_amount" type="number" step="0.01" min="0"
+                                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                @error('auto_recharge_amount') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Threshold</label>
+                                                <input wire:model="auto_recharge_threshold" type="number" step="0.01" min="0"
+                                                       class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                @error('auto_recharge_threshold') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Trial Period -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">🎯 Trial End Date (optional)</label>
+                                    <input wire:model="trial_ends_at" type="date"
+                                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @error('trial_ends_at') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Étape 4: Paramètres Techniques -->
+                        @if($currentStep == 4)
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">🔒 Allowed IPs (optional)</label>
+                                    <input wire:model="allowed_ips" type="text"
+                                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                           placeholder="192.168.1.1, 10.0.0.1 (séparées par virgules)">
+                                    @error('allowed_ips') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    <p class="text-xs text-gray-500 mt-1">Leave empty to allow all IPs</p>
+                                </div>
+
+                                <!-- Summary -->
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="text-sm font-medium text-gray-900 mb-3">📋 Summary</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <strong>Name:</strong> {{ $name ?: 'Not specified' }}<br>
+                                            <strong>Type:</strong> {{ ucfirst($client_type) }}<br>
+                                            <strong>Username:</strong> {{ $username ?: 'Not specified' }}
+                                        </div>
+                                        <div>
+                                            <strong>Limite SMS Quotidienne:</strong> {{ number_format($daily_sms_limit) }}<br>
+                                            <strong>Limite SMS Mensuelle:</strong> {{ number_format($monthly_sms_limit) }}<br>
+                                            <strong>Rate Limit:</strong> {{ $rate_limit }}/min
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                            <div>
+                                @if($currentStep > 1)
+                                    <button type="button" wire:click="prevStep"
+                                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                        ← Précédent
+                                    </button>
+                                @endif
+                            </div>
+                            
+                            <div class="flex space-x-3">
+                                <button type="button" wire:click="cancelEdit"
+                                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                    Cancel
+                                </button>
+                                
+                                @if($currentStep < 4)
+                                    <button type="button" wire:click="nextStep"
+                                            class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
+                                        Suivant →
+                                    </button>
+                                @else
+                                    <button type="submit"
+                                            class="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700">
+                                        💾 Update Client
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- JavaScript for clipboard functionality -->
     <script>

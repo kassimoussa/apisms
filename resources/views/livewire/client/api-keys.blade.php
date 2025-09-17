@@ -1,5 +1,5 @@
 <div class="py-6">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="md:flex md:items-center md:justify-between">
             <div class="flex-1 min-w-0">

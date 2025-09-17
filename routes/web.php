@@ -31,6 +31,7 @@ Route::get('/client/logout', function() {
 Route::middleware(['auth.web.admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('admin.dashboard');
     Route::get('/clients', \App\Livewire\ClientManager::class)->name('admin.clients');
+    Route::get('/clients/{client}', \App\Livewire\ClientProfile::class)->name('admin.clients.profile');
     Route::get('/test', \App\Livewire\SmsTest::class)->name('admin.test');
     Route::get('/responses', \App\Livewire\SmsResponses::class)->name('admin.responses');
 });

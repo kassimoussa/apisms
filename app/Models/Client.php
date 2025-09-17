@@ -15,6 +15,26 @@ class Client extends Model
         'name',
         'username',
         'password',
+        'email',
+        'phone',
+        'company',
+        'address',
+        'balance',
+        'credit_limit',
+        'currency',
+        'daily_sms_limit',
+        'monthly_sms_limit',
+        'client_type',
+        'industry',
+        'website',
+        'notification_settings',
+        'webhook_settings',
+        'auto_recharge',
+        'auto_recharge_amount',
+        'auto_recharge_threshold',
+        'trial_ends_at',
+        'suspended_at',
+        'suspension_reason',
         'last_login_at',
         'status',
         'api_key_hash',
@@ -29,7 +49,16 @@ class Client extends Model
     protected $casts = [
         'allowed_ips' => 'array',
         'active' => 'boolean',
+        'auto_recharge' => 'boolean',
+        'balance' => 'decimal:2',
+        'credit_limit' => 'decimal:2',
+        'auto_recharge_amount' => 'decimal:2',
+        'auto_recharge_threshold' => 'decimal:2',
+        'notification_settings' => 'array',
+        'webhook_settings' => 'array',
         'api_key_expires_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
+        'suspended_at' => 'datetime',
     ];
 
     protected $hidden = [
@@ -178,5 +207,80 @@ class Client extends Model
         return static::where('username', $username)
                     ->where('status', 'active')
                     ->first();
+    }
+
+    /**
+     * New utility methods for advanced client management
+     */
+    public function isSuspended(): bool
+    {
+        return !is_null($this->suspended_at);
+    }
+
+    public function isOnTrial(): bool
+    {
+        return !is_null($this->trial_ends_at) && $this->trial_ends_at->isFuture();
+    }
+
+    public function hasLowBalance(): bool
+    {
+        return $this->auto_recharge && 
+               $this->auto_recharge_threshold && 
+               $this->balance <= $this->auto_recharge_threshold;
+    }
+
+    public function getDailySmsUsage(?\DateTime $date = null): int
+    {
+        $date = $date ?? now();
+        return $this->smsMessages()
+            ->whereDate('created_at', $date)
+            ->count();
+    }
+
+    public function getMonthlySmsUsage(?\DateTime $date = null): int
+    {
+        $date = $date ?? now();
+        return $this->smsMessages()
+            ->whereYear('created_at', $date->year)
+            ->whereMonth('created_at', $date->month)
+            ->count();
+    }
+
+    public function getRemainingDailyQuota(): int
+    {
+        return max(0, $this->daily_sms_limit - $this->getDailySmsUsage());
+    }
+
+    public function getRemainingMonthlyQuota(): int
+    {
+        return max(0, $this->monthly_sms_limit - $this->getMonthlySmsUsage());
+    }
+
+    public function getClientTypeLabel(): string
+    {
+        return match($this->client_type) {
+            'individual' => 'Individual',
+            'business' => 'Business',
+            'enterprise' => 'Enterprise',
+            default => 'Unknown'
+        };
+    }
+
+    public function suspend(string $reason): void
+    {
+        $this->update([
+            'suspended_at' => now(),
+            'suspension_reason' => $reason,
+            'active' => false
+        ]);
+    }
+
+    public function unsuspend(): void
+    {
+        $this->update([
+            'suspended_at' => null,
+            'suspension_reason' => null,
+            'active' => true
+        ]);
     }
 }
