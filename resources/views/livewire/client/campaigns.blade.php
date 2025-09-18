@@ -1,18 +1,18 @@
 <div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="md:flex md:items-center md:justify-between">
             <div class="flex-1 min-w-0">
                 <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                    📊 My Campaigns
+                    📊 Mes Campagnes
                 </h2>
                 <p class="mt-1 text-sm text-gray-500">
-                    Manage and monitor your SMS campaigns
+                    Gérez et surveillez vos campagnes SMS
                 </p>
             </div>
             <div class="mt-4 flex md:mt-0 md:ml-4">
                 <a href="{{ route('client.bulk-sms') }}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    📤 New Campaign
+                    📤 Nouvelle Campagne
                 </a>
             </div>
         </div>
@@ -21,18 +21,18 @@
         <div class="mt-8">
             <div class="flex items-center space-x-4">
                 <div>
-                    <label for="status" class="block text-sm font-medium text-gray-700">Filter by Status</label>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Filtrer par Statut</label>
                     <select 
                         id="status" 
                         wire:model="statusFilter"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
-                        <option value="">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="completed">Completed</option>
-                        <option value="failed">Failed</option>
-                        <option value="paused">Paused</option>
+                        <option value="">Tous les Statuts</option>
+                        <option value="pending">En Attente</option>
+                        <option value="processing">En Cours</option>
+                        <option value="completed">Terminé</option>
+                        <option value="failed">Échoué</option>
+                        <option value="paused">En Pause</option>
                     </select>
                 </div>
             </div>
@@ -89,15 +89,15 @@
                                             <div class="mt-2">
                                                 <div class="flex items-center text-sm text-gray-500">
                                                     <span class="mr-4">
-                                                        📤 {{ number_format($campaign->sent_count) }}/{{ number_format($campaign->total_count) }} sent
+                                                        📤 {{ number_format($campaign->sent_count) }}/{{ number_format($campaign->total_count) }} envoyés
                                                     </span>
                                                     @if($campaign->failed_count > 0)
                                                         <span class="mr-4 text-red-600">
-                                                            ❌ {{ number_format($campaign->failed_count) }} failed
+                                                            ❌ {{ number_format($campaign->failed_count) }} échoués
                                                         </span>
                                                     @endif
                                                     <span class="mr-4">
-                                                        📊 {{ number_format($campaign->success_rate) }}% success
+                                                        📊 {{ number_format($campaign->success_rate) }}% de succès
                                                     </span>
                                                     <span>
                                                         📅 {{ $campaign->created_at->format('M d, Y H:i') }}
@@ -105,7 +105,7 @@
                                                 </div>
                                                 @if($campaign->scheduled_at)
                                                     <div class="mt-1 text-sm text-blue-600">
-                                                        🕒 Scheduled for {{ $campaign->scheduled_at->format('M d, Y H:i') }}
+                                                        🕒 Programmé pour le {{ $campaign->scheduled_at->format('d/m/Y H:i') }}
                                                     </div>
                                                 @endif
                                                 @if($campaign->status === 'processing' || $campaign->status === 'pending')
@@ -128,21 +128,21 @@
                                             </button>
                                         @elseif($campaign->status === 'paused')
                                             <button class="bg-green-100 hover:bg-green-200 text-green-800 px-3 py-1 rounded-md text-xs font-medium">
-                                                ▶️ Resume
+                                                ▶️ Reprendre
                                             </button>
                                         @endif
                                         <button class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-md text-xs font-medium">
-                                            👁️ Details
+                                            👁️ Détails
                                         </button>
                                     </div>
                                 </div>
                                 
                                 <!-- Campaign Content Preview -->
                                 <div class="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                                    <p class="font-medium">Message:</p>
+                                    <p class="font-medium">Message :</p>
                                     <p class="mt-1">{{ Str::limit($campaign->content, 100) }}</p>
                                     @if($campaign->from)
-                                        <p class="mt-1"><span class="font-medium">From:</span> {{ $campaign->from }}</p>
+                                        <p class="mt-1"><span class="font-medium">De :</span> {{ $campaign->from }}</p>
                                     @endif
                                 </div>
                             </div>
@@ -157,17 +157,17 @@
             @else
                 <div class="text-center py-12">
                     <span class="text-4xl">📭</span>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No campaigns found</h3>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune campagne trouvée</h3>
                     <p class="mt-1 text-sm text-gray-500">
                         @if($statusFilter)
-                            No campaigns with status "{{ $statusFilter }}" found.
+                            Aucune campagne avec le statut "{{ $statusFilter }}" trouvée.
                         @else
-                            You haven't created any campaigns yet.
+                            Vous n'avez pas encore créé de campagnes.
                         @endif
                     </p>
                     <div class="mt-6">
                         <a href="{{ route('client.bulk-sms') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                            📤 Create Your First Campaign
+                            📤 Créer Votre Première Campagne
                         </a>
                     </div>
                 </div>

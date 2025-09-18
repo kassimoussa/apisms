@@ -1,0 +1,513 @@
+{
+  "info": {
+    "name": "SMS Gateway API - Complete Collection",
+    "description": "Collection complète pour tester l'API SMS Gateway\n\n## Configuration requise :\n1. **Variable d'environnement** `base_url` : http://localhost:8000 ou votre domaine\n2. **Variable d'environnement** `api_key` : Votre clé API (format: sk_...)\n\n## Authentification :\nToutes les requêtes utilisent l'en-tête `X-API-Key` avec votre clé API.\n\n## Endpoints disponibles :\n- **SMS Simple** : Envoi d'un SMS unique\n- **SMS en Masse** : Envoi vers plusieurs destinataires\n- **Gestion des Jobs** : Contrôle des campagnes en cours\n- **Statistiques** : Données de performance\n- **Health Check** : Vérification de l'état du service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "SMS_Gateway_API"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_key", 
+      "value": "sk_your_api_key_here",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🏥 Health Check",
+      "item": [
+        {
+          "name": "API Health Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Vérifie l'état de santé de l'API SMS Gateway"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📱 SMS Simple",
+      "item": [
+        {
+          "name": "Envoyer SMS (Synchrone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"message\": \"🚀 Test SMS depuis l'API Gateway! Support complet des emojis et accents français: àéèùç 😊\",\n    \"from\": \"TEST\",\n    \"async\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Envoie un SMS unique de manière synchrone. La réponse contient immédiatement le statut de livraison."
+          },
+          "response": []
+        },
+        {
+          "name": "Envoyer SMS (Asynchrone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"message\": \"📨 SMS asynchrone - traité en arrière-plan via la queue Laravel\",\n    \"from\": \"ASYNC\",\n    \"async\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Envoie un SMS de manière asynchrone via la queue Laravel. Retourne immédiatement avec le statut 'pending'."
+          },
+          "response": []
+        },
+        {
+          "name": "Liste des SMS Envoyés",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms"]
+            },
+            "description": "Récupère la liste des SMS envoyés par le client authentifié"
+          },
+          "response": []
+        },
+        {
+          "name": "Statut d'un SMS",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "1", "status"]
+            },
+            "description": "Obtient le statut détaillé d'un SMS spécifique par son ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📤 SMS en Masse",
+      "item": [
+        {
+          "name": "Créer Campagne SMS Basique",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Campagne Test API\",\n    \"recipients\": [\"77166677\", \"77123456\", \"77987654\"],\n    \"content\": \"🎉 Message de test pour campagne SMS! Emojis et accents supportés: àéèùç\",\n    \"from\": \"CAMPAGNE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "bulk"]
+            },
+            "description": "Crée une campagne SMS basique avec envoi immédiat vers plusieurs destinataires"
+          },
+          "response": []
+        },
+        {
+          "name": "Créer Campagne SMS Programmée",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Campagne Programmée - Promotion Spéciale\",\n    \"recipients\": [\"77166677\", \"77123456\", \"77987654\", \"77111222\", \"77333444\"],\n    \"content\": \"🛍️ PROMOTION SPÉCIALE! 50% de réduction sur tous nos produits. Valable jusqu'au 31 décembre. Code: PROMO50\",\n    \"from\": \"PROMO\",\n    \"scheduled_at\": \"2025-01-01T10:00:00Z\",\n    \"settings\": {\n        \"rate_limit\": 30,\n        \"batch_size\": 50\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "bulk"]
+            },
+            "description": "Crée une campagne SMS programmée avec paramètres de performance personnalisés"
+          },
+          "response": []
+        },
+        {
+          "name": "Créer Campagne SMS Massive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Campagne Massive - Newsletter\",\n    \"recipients\": [\n        \"77166677\", \"77123456\", \"77987654\", \"77111222\", \"77333444\",\n        \"77555666\", \"77777888\", \"77999000\", \"77112233\", \"77445566\",\n        \"77778899\", \"77001122\", \"77334455\", \"77667788\", \"77990011\"\n    ],\n    \"content\": \"📧 Newsletter mensuelle: Découvrez nos nouveautés! Rendez-vous sur notre site web pour plus d'informations.\",\n    \"from\": \"NEWSLETTER\",\n    \"settings\": {\n        \"rate_limit\": 60,\n        \"batch_size\": 100\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "bulk"]
+            },
+            "description": "Teste l'envoi d'une campagne vers un plus grand nombre de destinataires"
+          },
+          "response": []
+        },
+        {
+          "name": "Liste des Campagnes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "bulk"]
+            },
+            "description": "Récupère la liste de toutes les campagnes SMS créées"
+          },
+          "response": []
+        },
+        {
+          "name": "Statut d'une Campagne",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/bulk/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "bulk", "1"]
+            },
+            "description": "Obtient le statut détaillé d'une campagne spécifique (remplacer '1' par l'ID de votre campagne)"
+          },
+          "response": []
+        },
+        {
+          "name": "Mettre en Pause une Campagne",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/bulk/1/pause",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "bulk", "1", "pause"]
+            },
+            "description": "Met en pause une campagne en cours d'exécution"
+          },
+          "response": []
+        },
+        {
+          "name": "Reprendre une Campagne",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/bulk/1/resume",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "bulk", "1", "resume"]
+            },
+            "description": "Reprend une campagne qui a été mise en pause"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Statistiques",
+      "item": [
+        {
+          "name": "Statistiques Générales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stats"]
+            },
+            "description": "Récupère les statistiques générales d'utilisation (SMS envoyés, échoués, taux de succès, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "Statistiques Temps Réel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stats/realtime",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stats", "realtime"]
+            },
+            "description": "Récupère les statistiques en temps réel pour le monitoring"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🧪 Tests de Validation",
+      "item": [
+        {
+          "name": "Test SMS sans Destinataire (Erreur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"Test sans destinataire\",\n    \"from\": \"TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test de validation : envoi d'un SMS sans spécifier de destinataire (doit retourner une erreur 422)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test SMS sans Message (Erreur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"from\": \"TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test de validation : envoi d'un SMS sans contenu de message (doit retourner une erreur 422)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test Numéro Invalid (Erreur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"123\",\n    \"message\": \"Test avec numéro invalide\",\n    \"from\": \"TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test avec un numéro de téléphone invalide (doit retourner une erreur de validation)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test Message Trop Long (Erreur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"message\": \"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.\",\n    \"from\": \"TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test avec un message dépassant la limite de caractères autorisée"
+          },
+          "response": []
+        },
+        {
+          "name": "Test sans Authentification (Erreur 401)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"message\": \"Test sans authentification\",\n    \"from\": \"TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test d'accès sans clé API (doit retourner une erreur 401 Unauthorized)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🌍 Tests Internationaux",
+      "item": [
+        {
+          "name": "Test SMS avec Emojis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"message\": \"🚀🎉🌟 Test complet d'emojis: 😀😃😄😁😆😊😍🥰😘🤗🤩🤯 📱💻🖥️⌚📺📹📷📸🎥🎬\",\n    \"from\": \"EMOJI\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test de support des emojis Unicode dans les messages SMS"
+          },
+          "response": []
+        },
+        {
+          "name": "Test SMS avec Accents Français",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"message\": \"Éèêë - Àâäåæ - Ïîì - Ôöøœ - Ùûüÿ - Çç - Test complet des caractères spéciaux français: élève, hôtel, naïf, Noël\",\n    \"from\": \"FRANÇAIS\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test de support des caractères accentués français"
+          },
+          "response": []
+        },
+        {
+          "name": "Test SMS avec Caractères Arabes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"77166677\",\n    \"message\": \"مرحبا! هذا اختبار للرسائل النصية باللغة العربية. نحن نختبر دعم اليونيكود والترميز UTF-8.\",\n    \"from\": \"عربي\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sms", "send"]
+            },
+            "description": "Test de support des caractères arabes (important pour Djibouti)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

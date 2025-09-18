@@ -5,10 +5,10 @@
                 <span class="text-2xl">📱</span>
             </div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                SMS Gateway Client Portal
+                Portail Client SMS Gateway
             </h2>
             <p class="mt-2 text-center text-sm text-gray-600">
-                Sign in to your account to manage your SMS campaigns
+                Connectez-vous à votre compte pour gérer vos campagnes SMS
             </p>
         </div>
         
@@ -21,7 +21,7 @@
 
             <div class="rounded-md shadow-sm -space-y-px">
                 <div>
-                    <label for="username" class="sr-only">Username</label>
+                    <label for="username" class="sr-only">Nom d'utilisateur</label>
                     <input 
                         id="username" 
                         name="username" 
@@ -29,14 +29,14 @@
                         required 
                         wire:model="username"
                         class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                        placeholder="Username"
+                        placeholder="Nom d'utilisateur"
                     >
                     @error('username') 
                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
                     @enderror
                 </div>
                 <div>
-                    <label for="password" class="sr-only">Password</label>
+                    <label for="password" class="sr-only">Mot de passe</label>
                     <input 
                         id="password" 
                         name="password" 
@@ -44,7 +44,7 @@
                         required 
                         wire:model="password"
                         class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                        placeholder="Password"
+                        placeholder="Mot de passe"
                     >
                     @error('password') 
                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
@@ -62,7 +62,7 @@
                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     >
                     <label for="remember" class="ml-2 block text-sm text-gray-900">
-                        Remember me
+                        Se souvenir de moi
                     </label>
                 </div>
             </div>
@@ -75,21 +75,21 @@
                     wire:loading.class="opacity-50 cursor-not-allowed"
                 >
                     <span wire:loading.remove>
-                        Sign in
+                        Se connecter
                     </span>
                     <span wire:loading>
-                        Signing in...
+                        Connexion en cours...
                     </span>
                 </button>
             </div>
 
             <div class="text-center">
                 <p class="text-sm text-gray-600">
-                    Need access? Contact your system administrator
+                    Besoin d'accès ? Contactez votre administrateur système
                 </p>
                 <div class="mt-4">
                     <a href="{{ route('admin.login') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                        👨‍💼 Admin Login
+                        👨‍💼 Connexion Admin
                     </a>
                 </div>
             </div>
@@ -97,10 +97,10 @@
 
         <!-- Demo Credentials for Testing -->
         <div class="mt-8 p-4 bg-blue-50 rounded-md">
-            <h3 class="text-sm font-medium text-blue-800 mb-2">Demo Credentials:</h3>
+            <h3 class="text-sm font-medium text-blue-800 mb-2">Identifiants de Démo :</h3>
             <div class="text-xs text-blue-700 space-y-1">
-                <p><strong>Username:</strong> demo_client</p>
-                <p><strong>Password:</strong> password123</p>
+                <p><strong>Nom d'utilisateur :</strong> demo_client</p>
+                <p><strong>Mot de passe :</strong> password123</p>
             </div>
         </div>
     </div>

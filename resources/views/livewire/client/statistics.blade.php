@@ -1,20 +1,20 @@
 <div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="md:flex md:items-center md:justify-between">
             <div class="flex-1 min-w-0">
                 <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                    📈 Statistics & Analytics
+                    📈 Statistiques et Analyses
                 </h2>
                 <p class="mt-1 text-sm text-gray-500">
-                    Track your SMS campaign performance and usage
+                    Suivez les performances et l'utilisation de vos campagnes SMS
                 </p>
             </div>
         </div>
 
         <!-- Overall Stats -->
         <div class="mt-8">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Overall Performance</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Performance Générale</h3>
             <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
                 <!-- Total SMS -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
@@ -42,7 +42,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Sent SMS</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">SMS Envoyés</dt>
                                     <dd class="text-lg font-medium text-green-600">{{ number_format($stats['sent_sms']) }}</dd>
                                 </dl>
                             </div>
@@ -59,7 +59,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Failed SMS</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">SMS Échoués</dt>
                                     <dd class="text-lg font-medium text-red-600">{{ number_format($stats['failed_sms']) }}</dd>
                                 </dl>
                             </div>
@@ -76,7 +76,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Campaigns</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Campagnes</dt>
                                     <dd class="text-lg font-medium text-gray-900">{{ number_format($stats['total_campaigns']) }}</dd>
                                 </dl>
                             </div>
@@ -93,7 +93,7 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Success Rate</dt>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Taux de Succès</dt>
                                     <dd class="text-lg font-medium text-blue-600">
                                         @if($stats['total_sms'] > 0)
                                             {{ number_format(($stats['sent_sms'] / $stats['total_sms']) * 100, 1) }}%
@@ -111,26 +111,26 @@
 
         <!-- Monthly Breakdown -->
         <div class="mt-8">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">12-Month Breakdown</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Répartition sur 12 Mois</h3>
             <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Month
+                                    Mois
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    SMS Sent
+                                    SMS Envoyés
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    SMS Failed
+                                    SMS Échoués
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Campaigns
+                                    Campagnes
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Success Rate
+                                    Taux de Succès
                                 </th>
                             </tr>
                         </thead>
@@ -183,17 +183,17 @@
             <!-- Best Performance -->
             <div class="bg-green-50 overflow-hidden shadow rounded-lg">
                 <div class="p-5">
-                    <h4 class="text-lg font-medium text-green-900">🏆 Best Month</h4>
+                    <h4 class="text-lg font-medium text-green-900">🏆 Meilleur Mois</h4>
                     @php
                         $bestMonth = $monthlyStats->sortByDesc('sent')->first();
                     @endphp
                     @if($bestMonth && $bestMonth['sent'] > 0)
                         <div class="mt-2">
                             <p class="text-2xl font-bold text-green-600">{{ $bestMonth['month'] }}</p>
-                            <p class="text-sm text-green-700">{{ number_format($bestMonth['sent']) }} SMS sent</p>
+                            <p class="text-sm text-green-700">{{ number_format($bestMonth['sent']) }} SMS envoyés</p>
                         </div>
                     @else
-                        <p class="mt-2 text-sm text-green-700">No data available yet</p>
+                        <p class="mt-2 text-sm text-green-700">Aucune donnée disponible pour l'instant</p>
                     @endif
                 </div>
             </div>
@@ -201,20 +201,20 @@
             <!-- Recent Activity -->
             <div class="bg-blue-50 overflow-hidden shadow rounded-lg">
                 <div class="p-5">
-                    <h4 class="text-lg font-medium text-blue-900">📈 This Month</h4>
+                    <h4 class="text-lg font-medium text-blue-900">📈 Ce Mois-ci</h4>
                     @php
                         $thisMonth = $monthlyStats->last();
                     @endphp
                     @if($thisMonth)
                         <div class="mt-2">
                             <p class="text-2xl font-bold text-blue-600">{{ number_format($thisMonth['sent']) }}</p>
-                            <p class="text-sm text-blue-700">SMS sent so far</p>
+                            <p class="text-sm text-blue-700">SMS envoyés jusqu'à présent</p>
                             @if($thisMonth['campaigns'] > 0)
-                                <p class="text-xs text-blue-600 mt-1">{{ $thisMonth['campaigns'] }} campaigns launched</p>
+                                <p class="text-xs text-blue-600 mt-1">{{ $thisMonth['campaigns'] }} campagnes lancées</p>
                             @endif
                         </div>
                     @else
-                        <p class="mt-2 text-sm text-blue-700">No activity this month</p>
+                        <p class="mt-2 text-sm text-blue-700">Aucune activité ce mois-ci</p>
                     @endif
                 </div>
             </div>
@@ -228,14 +228,14 @@
                 </div>
                 <div class="ml-3">
                     <h3 class="text-sm font-medium text-yellow-800">
-                        Performance Tips
+                        Conseils de Performance
                     </h3>
                     <div class="mt-2 text-sm text-yellow-700">
                         <ul class="list-disc list-inside space-y-1">
-                            <li>Monitor your success rates to identify delivery issues</li>
-                            <li>Test campaigns with small groups before scaling up</li>
-                            <li>Use appropriate sending speeds to avoid overwhelming the network</li>
-                            <li>Schedule campaigns during optimal hours for better engagement</li>
+                            <li>Surveillez vos taux de succès pour identifier les problèmes de livraison</li>
+                            <li>Testez les campagnes avec de petits groupes avant de les étendre</li>
+                            <li>Utilisez des vitesses d'envoi appropriées pour éviter de surcharger le réseau</li>
+                            <li>Programmez les campagnes pendant les heures optimales pour un meilleur engagement</li>
                         </ul>
                     </div>
                 </div>
