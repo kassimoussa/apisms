@@ -48,6 +48,7 @@ Route::middleware(['auth.web.client'])->prefix('client')->group(function () {
     Route::get('/dashboard', \App\Livewire\Client\Dashboard::class)->name('client.dashboard');
     Route::get('/bulk-sms', \App\Livewire\BulkSmsManager::class)->name('client.bulk-sms');
     Route::get('/campaigns', \App\Livewire\Client\Campaigns::class)->name('client.campaigns');
+    Route::get('/campaigns/{campaignId}', \App\Livewire\Client\CampaignDetails::class)->name('client.campaigns.details');
     Route::get('/statistics', \App\Livewire\Client\Statistics::class)->name('client.statistics');
     Route::get('/api-keys', \App\Livewire\Client\ApiKeys::class)->name('client.api-keys');
 });

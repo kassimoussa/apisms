@@ -24,18 +24,10 @@ class ClientForm extends Component
     public $industry = '';
     public $website = '';
     
-    // Billing & Limits
-    public $balance = 0;
-    public $credit_limit = 0;
-    public $currency = 'EUR';
+    // Limits
     public $daily_sms_limit = 1000;
     public $monthly_sms_limit = 30000;
     public $rate_limit = 60;
-    
-    // Auto-recharge
-    public $auto_recharge = false;
-    public $auto_recharge_amount = 0;
-    public $auto_recharge_threshold = 0;
     
     // Trial
     public $trial_ends_at = '';
@@ -44,7 +36,6 @@ class ClientForm extends Component
     public $allowed_ips = '';
     
     // UI State
-    public $currentStep = 1;
     public $isEditing = false;
     public $clientId = null;
     
@@ -71,33 +62,14 @@ class ClientForm extends Component
             $this->client_type = $client->client_type;
             $this->industry = $client->industry;
             $this->website = $client->website;
-            $this->balance = $client->balance;
-            $this->credit_limit = $client->credit_limit;
-            $this->currency = $client->currency;
             $this->daily_sms_limit = $client->daily_sms_limit;
             $this->monthly_sms_limit = $client->monthly_sms_limit;
             $this->rate_limit = $client->rate_limit;
-            $this->auto_recharge = $client->auto_recharge;
-            $this->auto_recharge_amount = $client->auto_recharge_amount;
-            $this->auto_recharge_threshold = $client->auto_recharge_threshold;
             $this->trial_ends_at = $client->trial_ends_at ? $client->trial_ends_at->format('Y-m-d') : '';
             $this->allowed_ips = is_array($client->allowed_ips) ? implode(', ', $client->allowed_ips) : '';
         }
     }
 
-    public function nextStep()
-    {
-        if ($this->currentStep < 4) {
-            $this->currentStep++;
-        }
-    }
-
-    public function prevStep()
-    {
-        if ($this->currentStep > 1) {
-            $this->currentStep--;
-        }
-    }
 
     public function save()
     {
@@ -116,19 +88,12 @@ class ClientForm extends Component
             // Business Information
             'client_type' => 'required|in:individual,business,enterprise',
             'industry' => 'nullable|string|max:255',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/',
             
-            // Billing & Limits
-            'balance' => 'nullable|numeric|min:0',
-            'credit_limit' => 'nullable|numeric|min:0',
-            'currency' => 'required|string|size:3',
+            // Limits
             'daily_sms_limit' => 'required|integer|min:1|max:100000',
             'monthly_sms_limit' => 'required|integer|min:1|max:1000000',
             'rate_limit' => 'required|integer|min:1|max:1000',
-            
-            // Auto-recharge
-            'auto_recharge_amount' => 'nullable|numeric|min:0',
-            'auto_recharge_threshold' => 'nullable|numeric|min:0',
             
             // Trial
             'trial_ends_at' => 'nullable|date|after:now',
@@ -164,15 +129,9 @@ class ClientForm extends Component
             'client_type' => $this->client_type,
             'industry' => $this->industry,
             'website' => $this->website,
-            'balance' => $this->balance ?? 0,
-            'credit_limit' => $this->credit_limit ?? 0,
-            'currency' => $this->currency,
             'daily_sms_limit' => $this->daily_sms_limit,
             'monthly_sms_limit' => $this->monthly_sms_limit,
             'rate_limit' => $this->rate_limit,
-            'auto_recharge' => $this->auto_recharge,
-            'auto_recharge_amount' => $this->auto_recharge ? $this->auto_recharge_amount : null,
-            'auto_recharge_threshold' => $this->auto_recharge ? $this->auto_recharge_threshold : null,
             'trial_ends_at' => $trialEndsAt,
             'allowed_ips' => $allowedIps,
         ];
@@ -185,6 +144,12 @@ class ClientForm extends Component
             $data['password'] = $this->password;
             $data['active'] = true;
             $data['status'] = 'active';
+            $data['balance'] = 0;
+            $data['credit_limit'] = 0;
+            $data['currency'] = 'EUR';
+            $data['auto_recharge'] = false;
+            $data['auto_recharge_amount'] = null;
+            $data['auto_recharge_threshold'] = null;
             
             $client = Client::create($data);
             $client->setPassword($this->password);

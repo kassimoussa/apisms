@@ -10,10 +10,16 @@ class ClientProfile extends Component
 {
     public Client $client;
     public $showEditModal = false;
+    public $showResetPasswordModal = false;
     public $activeTab = 'overview';
     
     // Edit form properties
     public $editData = [];
+    
+    // Password reset properties
+    public $newPassword = '';
+    public $confirmPassword = '';
+    public $forceLogout = true;
 
     public function mount(Client $client)
     {
@@ -32,15 +38,9 @@ class ClientProfile extends Component
             'industry' => $this->client->industry,
             'website' => $this->client->website,
             'description' => $this->client->description,
-            'balance' => $this->client->balance,
-            'credit_limit' => $this->client->credit_limit,
-            'currency' => $this->client->currency,
             'daily_sms_limit' => $this->client->daily_sms_limit,
             'monthly_sms_limit' => $this->client->monthly_sms_limit,
             'rate_limit' => $this->client->rate_limit,
-            'auto_recharge' => $this->client->auto_recharge,
-            'auto_recharge_amount' => $this->client->auto_recharge_amount,
-            'auto_recharge_threshold' => $this->client->auto_recharge_threshold,
             'allowed_ips' => is_array($this->client->allowed_ips) ? implode(', ', $this->client->allowed_ips) : '',
         ];
     }
@@ -69,14 +69,9 @@ class ClientProfile extends Component
             'editData.industry' => 'nullable|string|max:255',
             'editData.website' => 'nullable|url|max:255',
             'editData.description' => 'nullable|string',
-            'editData.balance' => 'nullable|numeric|min:0',
-            'editData.credit_limit' => 'nullable|numeric|min:0',
-            'editData.currency' => 'required|string|size:3',
             'editData.daily_sms_limit' => 'required|integer|min:1|max:100000',
             'editData.monthly_sms_limit' => 'required|integer|min:1|max:1000000',
             'editData.rate_limit' => 'required|integer|min:1|max:1000',
-            'editData.auto_recharge_amount' => 'nullable|numeric|min:0',
-            'editData.auto_recharge_threshold' => 'nullable|numeric|min:0',
             'editData.allowed_ips' => 'nullable|string',
         ]);
 
@@ -94,15 +89,9 @@ class ClientProfile extends Component
             'industry' => $this->editData['industry'],
             'website' => $this->editData['website'],
             'description' => $this->editData['description'],
-            'balance' => $this->editData['balance'] ?? 0,
-            'credit_limit' => $this->editData['credit_limit'] ?? 0,
-            'currency' => $this->editData['currency'],
             'daily_sms_limit' => $this->editData['daily_sms_limit'],
             'monthly_sms_limit' => $this->editData['monthly_sms_limit'],
             'rate_limit' => $this->editData['rate_limit'],
-            'auto_recharge' => $this->editData['auto_recharge'],
-            'auto_recharge_amount' => $this->editData['auto_recharge'] ? $this->editData['auto_recharge_amount'] : null,
-            'auto_recharge_threshold' => $this->editData['auto_recharge'] ? $this->editData['auto_recharge_threshold'] : null,
             'allowed_ips' => $allowedIps,
         ]);
 
@@ -136,6 +125,47 @@ class ClientProfile extends Component
         $newKey = $this->client->regenerateApiKey();
         session()->flash('newApiKey', $newKey);
         session()->flash('message', "API key regenerated for {$this->client->name}");
+    }
+
+    public function openResetPasswordModal()
+    {
+        $this->showResetPasswordModal = true;
+        $this->newPassword = '';
+        $this->confirmPassword = '';
+        $this->forceLogout = true;
+    }
+
+    public function closeResetPasswordModal()
+    {
+        $this->showResetPasswordModal = false;
+        $this->newPassword = '';
+        $this->confirmPassword = '';
+        $this->forceLogout = true;
+    }
+
+    public function resetPassword()
+    {
+        $this->validate([
+            'newPassword' => 'required|string|min:6|max:255',
+            'confirmPassword' => 'required|same:newPassword',
+        ], [
+            'newPassword.required' => 'Le nouveau mot de passe est requis.',
+            'newPassword.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
+            'confirmPassword.required' => 'La confirmation est requise.',
+            'confirmPassword.same' => 'Les mots de passe ne correspondent pas.',
+        ]);
+
+        // Update the client password
+        $this->client->setPassword($this->newPassword);
+        
+        // Optional: Force logout by updating a session token or similar
+        if ($this->forceLogout) {
+            // Implementation depends on your session management
+            // Could update last_password_change or similar field
+        }
+
+        $this->closeResetPasswordModal();
+        session()->flash('message', "Mot de passe réinitialisé avec succès pour {$this->client->name}");
     }
 
     public function getUsageStatsProperty()

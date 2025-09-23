@@ -95,6 +95,34 @@ class SmsController extends Controller
         $client = $request->attributes->get('client');
         $async = $request->boolean('async', false);
         
+        // Check daily SMS quota
+        $dailyUsage = $client->getDailySmsUsage();
+        if ($dailyUsage >= $client->daily_sms_limit) {
+            return response()->json([
+                'error' => 'Daily SMS quota exceeded',
+                'message' => "Daily limit of {$client->daily_sms_limit} SMS reached. Used: {$dailyUsage}",
+                'quota' => [
+                    'daily_limit' => $client->daily_sms_limit,
+                    'daily_used' => $dailyUsage,
+                    'remaining' => max(0, $client->daily_sms_limit - $dailyUsage)
+                ]
+            ], 429); // 429 Too Many Requests
+        }
+        
+        // Check monthly SMS quota
+        $monthlyUsage = $client->getMonthlySmsUsage();
+        if ($monthlyUsage >= $client->monthly_sms_limit) {
+            return response()->json([
+                'error' => 'Monthly SMS quota exceeded',
+                'message' => "Monthly limit of {$client->monthly_sms_limit} SMS reached. Used: {$monthlyUsage}",
+                'quota' => [
+                    'monthly_limit' => $client->monthly_sms_limit,
+                    'monthly_used' => $monthlyUsage,
+                    'remaining' => max(0, $client->monthly_sms_limit - $monthlyUsage)
+                ]
+            ], 429); // 429 Too Many Requests
+        }
+        
         // Create SMS message record
         $smsMessage = SmsMessage::create([
             'client_id' => $client->id,

@@ -91,7 +91,7 @@
                             🟢 Statut
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            💰 Utilisation
+                            📊 Utilisation
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             🔐 Clé API
@@ -192,13 +192,9 @@
                                 </div>
                             </td>
 
-                            <!-- Usage & Billing -->
+                            <!-- Usage -->
                             <td class="px-6 py-4">
                                 <div class="space-y-1">
-                                    <div class="flex items-center text-sm">
-                                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                                        <span class="font-medium">{{ number_format($client->balance ?? 0, 2) }} {{ $client->currency ?? 'EUR' }}</span>
-                                    </div>
                                     <div class="flex items-center text-sm text-gray-600">
                                         <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                                         <span>{{ number_format($client->sms_messages_count ?? 0) }} SMS envoyés</span>
@@ -207,11 +203,10 @@
                                         <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
                                         <span>{{ $client->daily_sms_limit ?? 1000 }}/jour</span>
                                     </div>
-                                    @if($client->credit_limit)
-                                        <div class="text-xs text-gray-500">
-                                            Crédit: {{ number_format($client->credit_limit, 2) }} {{ $client->currency ?? 'EUR' }}
-                                        </div>
-                                    @endif
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <span class="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                                        <span>{{ $client->monthly_sms_limit ?? 30000 }}/mois</span>
+                                    </div>
                                 </div>
                             </td>
 

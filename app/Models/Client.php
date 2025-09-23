@@ -234,6 +234,7 @@ class Client extends Model
         $date = $date ?? now();
         return $this->smsMessages()
             ->whereDate('created_at', $date)
+            ->whereIn('status', ['sent', 'delivered', 'pending'])
             ->count();
     }
 
@@ -243,6 +244,7 @@ class Client extends Model
         return $this->smsMessages()
             ->whereYear('created_at', $date->year)
             ->whereMonth('created_at', $date->month)
+            ->whereIn('status', ['sent', 'delivered', 'pending'])
             ->count();
     }
 

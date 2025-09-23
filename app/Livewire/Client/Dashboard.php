@@ -27,7 +27,7 @@ class Dashboard extends Component
         $this->todayStats = [
             'sent' => SmsMessage::where('client_id', $this->client->id)
                 ->whereDate('created_at', $today)
-                ->where('status', 'sent')
+                ->whereIn('status', ['delivered', 'sent'])
                 ->count(),
             'failed' => SmsMessage::where('client_id', $this->client->id)
                 ->whereDate('created_at', $today)
@@ -47,7 +47,7 @@ class Dashboard extends Component
         $this->weekStats = [
             'sent' => SmsMessage::where('client_id', $this->client->id)
                 ->where('created_at', '>=', $weekStart)
-                ->where('status', 'sent')
+                ->whereIn('status', ['delivered', 'sent'])
                 ->count(),
             'failed' => SmsMessage::where('client_id', $this->client->id)
                 ->where('created_at', '>=', $weekStart)

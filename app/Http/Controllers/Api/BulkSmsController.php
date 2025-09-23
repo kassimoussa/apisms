@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\BulkSmsJob;
 use App\Jobs\ProcessBulkSmsJob;
+use App\Services\QueueWorkerManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -112,19 +113,29 @@ class BulkSmsController extends Controller
                 ], 422);
             }
 
-            // Check rate limits (optional enhancement)
-            $dailyLimit = $client->settings['daily_bulk_limit'] ?? 50000;
-            $todayCount = BulkSmsJob::where('client_id', $client->id)
-                ->whereDate('created_at', today())
-                ->sum('total_count');
-
-            if (($todayCount + count($validRecipients)) > $dailyLimit) {
+            // Check daily SMS quota (includes all SMS types)
+            $dailyUsage = $client->getDailySmsUsage();
+            if (($dailyUsage + count($validRecipients)) > $client->daily_sms_limit) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Daily bulk SMS limit exceeded',
-                    'limit' => $dailyLimit,
-                    'used_today' => $todayCount,
-                    'requested' => count($validRecipients)
+                    'message' => 'Daily SMS quota exceeded',
+                    'limit' => $client->daily_sms_limit,
+                    'used_today' => $dailyUsage,
+                    'requested' => count($validRecipients),
+                    'remaining' => $client->getRemainingDailyQuota()
+                ], 429);
+            }
+
+            // Check monthly SMS quota (includes all SMS types)
+            $monthlyUsage = $client->getMonthlySmsUsage();
+            if (($monthlyUsage + count($validRecipients)) > $client->monthly_sms_limit) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Monthly SMS quota exceeded',
+                    'limit' => $client->monthly_sms_limit,
+                    'used_this_month' => $monthlyUsage,
+                    'requested' => count($validRecipients),
+                    'remaining' => $client->getRemainingMonthlyQuota()
                 ], 429);
             }
 
@@ -144,6 +155,9 @@ class BulkSmsController extends Controller
             if (!$bulkJob->scheduled_at || $bulkJob->scheduled_at->isPast()) {
                 $batchSize = $request->input('settings.batch_size', 50);
                 ProcessBulkSmsJob::dispatch($bulkJob->id, $batchSize);
+                
+                // Auto-start queue worker to process the job
+                QueueWorkerManager::ensureWorkerRunning();
             }
 
             Log::info('Bulk SMS job created', [
@@ -391,6 +405,9 @@ class BulkSmsController extends Controller
         if ($action === 'resume') {
             $batchSize = $bulkJob->settings['batch_size'] ?? 50;
             ProcessBulkSmsJob::dispatch($bulkJob->id, $batchSize);
+            
+            // Auto-start queue worker to process the resumed job
+            QueueWorkerManager::ensureWorkerRunning();
         }
 
         Log::info("Bulk SMS job {$action}d", [

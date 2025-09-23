@@ -11,6 +11,7 @@ class SmsMessage extends Model
 {
     protected $fillable = [
         'client_id',
+        'bulk_job_id',
         'direction',
         'from',
         'to',

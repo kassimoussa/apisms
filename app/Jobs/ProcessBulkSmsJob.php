@@ -94,6 +94,12 @@ class ProcessBulkSmsJob implements ShouldQueue
                         'content' => $bulkJob->content,
                         'status' => 'pending',
                     ]);
+                    
+                    // Fix bulk_job_id if not saved correctly
+                    if (!$smsMessage->bulk_job_id) {
+                        $smsMessage->bulk_job_id = $bulkJob->id;
+                        $smsMessage->save();
+                    }
 
                     // Send via Kannel
                     $result = $kannelService->sendSms(

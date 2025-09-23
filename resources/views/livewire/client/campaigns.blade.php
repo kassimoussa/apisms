@@ -131,9 +131,9 @@
                                                 ▶️ Reprendre
                                             </button>
                                         @endif
-                                        <button class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-md text-xs font-medium">
+                                        <a href="{{ route('client.campaigns.details', $campaign->id) }}" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-md text-xs font-medium">
                                             👁️ Détails
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                                 
