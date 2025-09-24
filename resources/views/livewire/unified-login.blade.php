@@ -2,8 +2,8 @@
     <div class="max-w-md w-full space-y-8">
         <!-- Header -->
         <div>
-            <div class="mx-auto h-20 w-20 flex items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg">
-                <span class="text-4xl">📱</span>
+            <div class="mx-auto h-20 w-20 flex items-center justify-center rounded-2xl ">
+                <span class="text-4xl"><img src="{{ asset("images/djibtelogo.png") }}" alt=""></span>
             </div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
                 {{ config('app.name') }}

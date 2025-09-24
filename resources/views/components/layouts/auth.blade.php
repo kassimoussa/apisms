@@ -7,7 +7,7 @@
     {{-- <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
      --}}
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" href="{{ asset('dtfavicon.ico') }}">
 
 
     <!-- Scripts -->
