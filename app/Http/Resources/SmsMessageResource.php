@@ -21,7 +21,6 @@ class SmsMessageResource extends JsonResource
             'to' => $this->formatted_to,
             'message' => $this->content,
             'status' => $this->status,
-            'kannel_id' => $this->kannel_id,
             'error_code' => $this->when($this->error_code, $this->error_code),
             'error_message' => $this->when($this->error_message, $this->error_message),
             'sent_at' => $this->sent_at?->toISOString(),

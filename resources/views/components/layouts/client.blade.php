@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMS Gateway - Client Portal</title>
+    <title>DT SMS Gateway - Client Portal</title>
     
     <link rel="icon" href="{{ asset('dtfavicon.ico') }}">
 
@@ -23,7 +23,10 @@
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <h1 class="text-xl font-bold text-gray-900">📱 SMS Gateway</h1>
+                            <div class="flex items-center">
+                                <img src="{{ asset('images/djibtelogo.png') }}" alt="Logo" class="h-8 w-8 mr-2">
+                                <h1 class="text-xl font-bold text-gray-900">DT SMS Gateway</h1>
+                            </div>
                         </div>
                         <div class="hidden md:ml-6 md:flex md:space-x-8">
                             <a href="{{ route('client.dashboard') }}" 

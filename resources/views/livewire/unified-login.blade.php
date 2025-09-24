@@ -93,25 +93,5 @@
             </div>
         </form>
 
-        <!-- Development Info -->
-        @if(app()->environment('local'))
-            <div class="mt-8 space-y-4">
-                <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                    <h4 class="text-sm font-medium text-indigo-800">👨‍💼 Identifiants Administrateur :</h4>
-                    <div class="mt-2 text-xs text-indigo-700 space-y-1">
-                        <p><strong>Super Admin :</strong> admin / admin123</p>
-                        <p><strong>Admin :</strong> manager / manager123</p>
-                    </div>
-                </div>
-                
-                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 class="text-sm font-medium text-blue-800">👤 Identifiants Client :</h4>
-                    <div class="mt-2 text-xs text-blue-700 space-y-1">
-                        <p><strong>Client Test :</strong> testclient / password123</p>
-                        <p><em>Créez des clients via le panneau d'administration</em></p>
-                    </div>
-                </div>
-            </div>
-        @endif
     </div>
 </div>

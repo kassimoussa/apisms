@@ -27,8 +27,8 @@
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="flex items-center space-x-3">
-                                <div class="h-8 w-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                    <span class="text-white text-sm font-bold">📱</span>
+                                <div class="h-8 w-8 bg-white rounded-lg flex items-center justify-center shadow-sm border">
+                                    <img src="{{ asset('images/djibtelogo.png') }}" alt="Logo" class="h-6 w-6">
                                 </div>
                                 <h1 class="text-xl font-bold text-gray-900">
                                     {{ config('app.name') }}

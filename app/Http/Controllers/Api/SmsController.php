@@ -48,7 +48,6 @@ class SmsController extends Controller
      *                 @OA\Property(property="to", type="string", example="+25377166677"),
      *                 @OA\Property(property="message", type="string", example="Test SMS from ApiSMS Gateway"),
      *                 @OA\Property(property="status", type="string", example="sent"),
-     *                 @OA\Property(property="kannel_id", type="string", example="uuid-string"),
      *                 @OA\Property(property="sent_at", type="string", format="datetime", example="2025-09-11T10:00:00.000000Z"),
      *                 @OA\Property(property="created_at", type="string", format="datetime", example="2025-09-11T10:00:00.000000Z"),
      *                 @OA\Property(property="updated_at", type="string", format="datetime", example="2025-09-11T10:00:00.000000Z")
@@ -242,7 +241,6 @@ class SmsController extends Controller
      *                 @OA\Property(property="to", type="string", example="+25377166677"),
      *                 @OA\Property(property="message", type="string", example="Test SMS from ApiSMS Gateway"),
      *                 @OA\Property(property="status", type="string", enum={"pending", "sent", "delivered", "failed"}, example="delivered"),
-     *                 @OA\Property(property="kannel_id", type="string", example="uuid-string"),
      *                 @OA\Property(property="sent_at", type="string", format="datetime", nullable=true),
      *                 @OA\Property(property="delivered_at", type="string", format="datetime", nullable=true),
      *                 @OA\Property(property="error_code", type="string", nullable=true, example="KANNEL_5"),

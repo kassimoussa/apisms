@@ -7,7 +7,7 @@
                     🔑 Gestion des Clés API
                 </h2>
                 <p class="mt-1 text-sm text-gray-500">
-                    Gérez vos clés d'accès à l'API SMS Gateway
+                    Gérez vos clés d'accès à l'API DT SMS Gateway
                 </p>
             </div>
         </div>

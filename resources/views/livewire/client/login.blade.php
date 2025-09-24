@@ -1,11 +1,11 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <div>
-            <div class="mx-auto h-12 w-12 flex items-center justify-center bg-blue-100 rounded-full">
-                <span class="text-2xl">📱</span>
+            <div class="mx-auto h-12 w-12 flex items-center justify-center bg-white rounded-full shadow-md border">
+                <img src="{{ asset('images/djibtelogo.png') }}" alt="Logo" class="h-8 w-8">
             </div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Portail Client SMS Gateway
+                Portail Client DT SMS Gateway
             </h2>
             <p class="mt-2 text-center text-sm text-gray-600">
                 Connectez-vous à votre compte pour gérer vos campagnes SMS
@@ -95,13 +95,5 @@
             </div>
         </form>
 
-        <!-- Demo Credentials for Testing -->
-        <div class="mt-8 p-4 bg-blue-50 rounded-md">
-            <h3 class="text-sm font-medium text-blue-800 mb-2">Identifiants de Démo :</h3>
-            <div class="text-xs text-blue-700 space-y-1">
-                <p><strong>Nom d'utilisateur :</strong> demo_client</p>
-                <p><strong>Mot de passe :</strong> password123</p>
-            </div>
-        </div>
     </div>
 </div>

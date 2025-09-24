@@ -9,7 +9,7 @@
                 Admin Login
             </h2>
             <p class="mt-2 text-center text-sm text-gray-600">
-                SMS Gateway Administration Panel
+                DT SMS Gateway Administration Panel
             </p>
         </div>
 
@@ -108,15 +108,5 @@
             </a>
         </div>
 
-        <!-- Development Info -->
-        @if(app()->environment('local'))
-            <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 class="text-sm font-medium text-yellow-800">🧪 Development Credentials:</h4>
-                <div class="mt-2 text-xs text-yellow-700">
-                    <p><strong>Super Admin:</strong> admin / admin123</p>
-                    <p><strong>Admin:</strong> manager / manager123</p>
-                </div>
-            </div>
-        @endif
     </div>
 </div>
