@@ -126,7 +126,7 @@ class SmsController extends Controller
         $smsMessage = SmsMessage::create([
             'client_id' => $client->id,
             'direction' => 'outbound',
-            'from' => $request->input('from') ?: config('services.kannel.from'),
+            'from' => $client->sender_id ?: config('services.kannel.from'),
             'to' => $request->input('to'),
             'content' => $request->input('message'),
             'status' => 'pending',

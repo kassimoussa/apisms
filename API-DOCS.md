@@ -39,8 +39,7 @@ curl -X POST "https://mysms.djiboutitelecom.dj/api/v1/sms/send" \
   -H "Content-Type: application/json" \
   -d '{
     "to": "+25377111213",
-    "message": "Votre code de vérification: 123456",
-    "from": "DT SMS"
+    "message": "Votre code de vérification: 123456"
   }'
 ```
 
@@ -84,8 +83,7 @@ curl -X POST "https://mysms.djiboutitelecom.dj/api/v1/sms/bulk" \
   -d '{
     "name": "Campagne Marketing",
     "recipients": ["77123456", "77987654", "77555333"],
-    "content": "Offre spéciale! 50% de réduction ce weekend!",
-    "from": "PROMO"
+    "content": "Offre spéciale! 50% de réduction ce weekend!"
   }'
 ```
 
@@ -98,7 +96,6 @@ curl -X POST "https://mysms.djiboutitelecom.dj/api/v1/sms/bulk" \
     "name": "Newsletter Hebdomadaire",
     "recipients": ["77111111", "77222222"],
     "content": "Découvrez nos nouveautés cette semaine!",
-    "from": "NEWS",
     "scheduled_at": "2025-09-28T09:00:00Z",
     "settings": {
       "rate_limit": 60,
@@ -324,9 +321,10 @@ else:
 - **Caractères spéciaux** : UTF-8 supporté
 
 ### Expéditeur (FROM)
-- **Texte** : Maximum 11 caractères alphanumériques
-- **Numéro** : Format international accepté
-- **Par défaut** : "DT SMS" si non spécifié
+- **🔒 Sécurisé** : L'ID expéditeur est fixé par client lors de la création du compte
+- **Automatique** : Pas besoin de spécifier le champ `from` dans les requêtes
+- **Format** : Maximum 11 caractères alphanumériques (défini par l'admin)
+- **Fallback** : Utilise la configuration par défaut si aucun ID expéditeur client
 
 ### Limites API
 - **Rate limiting** : Selon configuration client

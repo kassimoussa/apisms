@@ -1,4 +1,4 @@
-openapi: 3.0.3git 
+openapi: 3.0.3
 info:
   title: DT SMS Gateway API
   version: 1.0.0
@@ -98,11 +98,6 @@ paths:
                   description: "Contenu du message SMS"
                   example: "Bonjour, ceci est un message test."
                   maxLength: 160
-                from:
-                  type: string
-                  description: "ID expéditeur (texte jusqu'à 11 caractères ou numéro)"
-                  example: "DT SMS"
-                  maxLength: 11
                 async:
                   type: boolean
                   description: "Envoyer de façon asynchrone via queue"
@@ -119,7 +114,6 @@ paths:
                 value:
                   to: "+25377166677"
                   message: "Bienvenue chez DT SMS Gateway!"
-                  from: "DT SMS"
       responses:
         '200':
           description: SMS envoyé avec succès
@@ -301,11 +295,6 @@ paths:
                   description: "Contenu du message"
                   maxLength: 1600
                   example: "Offre spéciale! Profitez de 50% de réduction aujourd'hui seulement!"
-                from:
-                  type: string
-                  description: "ID expéditeur"
-                  maxLength: 20
-                  example: "PROMO"
                 scheduled_at:
                   type: string
                   format: date-time
@@ -342,7 +331,6 @@ paths:
                   name: "Marketing Weekend"
                   recipients: ["77111111", "77222222", "77333333"]
                   content: "Weekend Special: 30% off all products!"
-                  from: "SHOP"
                   scheduled_at: "2025-09-28T09:00:00Z"
                   settings:
                     rate_limit: 60

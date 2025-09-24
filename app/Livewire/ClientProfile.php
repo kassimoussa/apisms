@@ -67,7 +67,7 @@ class ClientProfile extends Component
             'editData.company' => 'nullable|string|max:255',
             'editData.address' => 'nullable|string|max:500',
             'editData.industry' => 'nullable|string|max:255',
-            'editData.website' => 'nullable|url|max:255',
+            'editData.website' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/',
             'editData.description' => 'nullable|string',
             'editData.daily_sms_limit' => 'required|integer|min:1|max:100000',
             'editData.monthly_sms_limit' => 'required|integer|min:1|max:1000000',

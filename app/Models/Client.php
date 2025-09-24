@@ -8,11 +8,16 @@ use Illuminate\Support\Str;
 use App\Services\ApiKeyEncryptionService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 
-class Client extends Model
+class Client extends Model implements Authenticatable
 {
+    use AuthenticatableTrait;
+    
     protected $fillable = [
         'name',
+        'sender_id',
         'username',
         'password',
         'email',

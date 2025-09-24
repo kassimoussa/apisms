@@ -143,7 +143,7 @@ class BulkSmsController extends Controller
                 'client_id' => $client->id,
                 'name' => $request->input('name', 'Bulk SMS Campaign ' . now()->format('Y-m-d H:i')),
                 'content' => $request->input('content'),
-                'from' => $request->input('from'),
+                'from' => $client->sender_id ?: config('services.kannel.from'),
                 'recipients' => $validRecipients,
                 'total_count' => count($validRecipients),
                 'pending_count' => count($validRecipients),

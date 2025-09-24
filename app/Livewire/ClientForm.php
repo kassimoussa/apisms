@@ -9,6 +9,7 @@ class ClientForm extends Component
 {
     // Basic Information
     public $name = '';
+    public $sender_id = '';
     public $username = '';
     public $password = '';
     public $description = '';
@@ -53,6 +54,7 @@ class ClientForm extends Component
         $client = Client::find($clientId);
         if ($client) {
             $this->name = $client->name;
+            $this->sender_id = $client->sender_id;
             $this->username = $client->username;
             $this->description = $client->description;
             $this->email = $client->email;
@@ -76,6 +78,7 @@ class ClientForm extends Component
         $rules = [
             // Basic Information
             'name' => 'required|string|max:255',
+            'sender_id' => 'nullable|string|max:11|regex:/^[a-zA-Z0-9]+$/',
             'username' => 'required|string|max:255|unique:clients,username' . ($this->isEditing ? ',' . $this->clientId : ''),
             'description' => 'nullable|string',
             
@@ -120,6 +123,7 @@ class ClientForm extends Component
 
         $data = [
             'name' => $this->name,
+            'sender_id' => $this->sender_id ?: null,
             'username' => $this->username,
             'description' => $this->description,
             'email' => $this->email,

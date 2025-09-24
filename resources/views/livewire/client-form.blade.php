@@ -55,6 +55,16 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ID Expéditeur</label>
+                        <input wire:model="sender_id" type="text" 
+                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                               placeholder="ex: COMPANY (max 11 caractères alphanumériques)"
+                               maxlength="11">
+                        @error('sender_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        <p class="mt-1 text-xs text-gray-500">Identifiant expéditeur pour tous les SMS de ce client. Si vide, utilise la configuration par défaut.</p>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nom d'utilisateur *</label>
                         <input wire:model="username" type="text"
                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"

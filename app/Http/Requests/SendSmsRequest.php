@@ -38,19 +38,6 @@ class SendSmsRequest extends FormRequest
                 'max:' . config('services.sms.max_length', 160),
                 'min:1',
             ],
-            'from' => [
-                'nullable',
-                'string',
-                'max:11',
-                function ($attribute, $value, $fail) {
-                    if ($value) {
-                        $kannelService = new KannelService();
-                        if (!$kannelService->isValidSender($value)) {
-                            $fail('The ' . $attribute . ' must be a valid phone number or text (max 11 chars).');
-                        }
-                    }
-                },
-            ],
         ];
     }
 
@@ -65,7 +52,6 @@ class SendSmsRequest extends FormRequest
             'message.required' => 'SMS message content is required.',
             'message.max' => 'SMS message cannot exceed ' . config('services.sms.max_length', 160) . ' characters.',
             'message.min' => 'SMS message cannot be empty.',
-            'from.max' => 'Sender phone number is too long.',
         ];
     }
 
@@ -77,7 +63,6 @@ class SendSmsRequest extends FormRequest
         return [
             'to' => 'recipient number',
             'message' => 'message content',
-            'from' => 'sender number',
         ];
     }
 }

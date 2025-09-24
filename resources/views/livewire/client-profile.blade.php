@@ -55,7 +55,7 @@
                         @endif
 
                         <span class="text-sm text-gray-500">{{ $client->getClientTypeLabel() }}</span>
-                        <span class="text-sm text-gray-500">Créé {{ $client->created_at->diffForHumans() }}</span>
+                        <span class="text-sm text-gray-500">Créé {{ \Carbon\Carbon::parse($client->created_at)->diffForHumans() }}</span>
                     </div>
                 </div>
             </div>
@@ -101,7 +101,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Solde</dt>
-                            <dd class="text-lg font-medium text-gray-900">{{ $client->balance }} {{ $client->currency }}</dd>
+                            <dd class="text-lg font-medium text-gray-900">{{ $client->balance }} DJF</dd>
                         </dl>
                     </div>
                 </div>
@@ -204,6 +204,12 @@
                                     <span class="text-sm font-medium text-gray-500">Type de Client :</span>
                                     <p class="text-sm text-gray-900">{{ $client->getClientTypeLabel() }}</p>
                                 </div>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">ID Expéditeur :</span>
+                                <p class="text-sm text-gray-900 {{ $client->sender_id ? 'font-mono' : 'text-gray-400 italic' }}">
+                                    {{ $client->sender_id ?: 'Non configuré (utilise la configuration par défaut)' }}
+                                </p>
                             </div>
                             @if($client->description)
                                 <div>
@@ -389,7 +395,7 @@
                             
                             @if($client->allowed_ips)
                                 <div>
-                                    <span class="text-sm font-medium text-gray-500">Allowed IPs:</span>
+                                    <span class="text-sm font-medium text-gray-500">IPs Autorisées :</span>
                                     <div class="mt-1">
                                         @foreach($client->allowed_ips as $ip)
                                             <span class="inline-block bg-gray-200 rounded px-2 py-1 text-xs mr-1 mb-1">{{ $ip }}</span>
@@ -398,15 +404,15 @@
                                 </div>
                             @else
                                 <div>
-                                    <span class="text-sm font-medium text-gray-500">IP Restrictions:</span>
-                                    <p class="text-sm text-gray-900">All IPs allowed</p>
+                                    <span class="text-sm font-medium text-gray-500">Restrictions IP :</span>
+                                    <p class="text-sm text-gray-900">Toutes les IPs autorisées</p>
                                 </div>
                             @endif
 
                             @if($client->last_login_at)
                                 <div>
-                                    <span class="text-sm font-medium text-gray-500">Last Login:</span>
-                                    <p class="text-sm text-gray-900">{{ $client->last_login_at->diffForHumans() }}</p>
+                                    <span class="text-sm font-medium text-gray-500">Dernière Connexion :</span>
+                                    <p class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($client->last_login_at)->diffForHumans() }}</p>
                                 </div>
                             @endif
                         </div>
