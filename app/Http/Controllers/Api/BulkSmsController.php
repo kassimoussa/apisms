@@ -154,10 +154,27 @@ class BulkSmsController extends Controller
             // Dispatch job if not scheduled
             if (!$bulkJob->scheduled_at || $bulkJob->scheduled_at->isPast()) {
                 $batchSize = $request->input('settings.batch_size', 50);
-                ProcessBulkSmsJob::dispatch($bulkJob->id, $batchSize);
                 
-                // Auto-start queue worker to process the job
-                QueueWorkerManager::ensureWorkerRunning();
+                // Option to bypass queue for immediate execution
+                if ($request->input('settings.immediate', false)) {
+                    // Execute immediately without queue
+                    try {
+                        $job = new ProcessBulkSmsJob($bulkJob->id, $batchSize);
+                        $job->handle();
+                        Log::info('Bulk SMS job executed immediately', ['bulk_job_id' => $bulkJob->id]);
+                    } catch (\Exception $e) {
+                        Log::error('Immediate bulk SMS execution failed', [
+                            'bulk_job_id' => $bulkJob->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                } else {
+                    // Use queue (default behavior)
+                    ProcessBulkSmsJob::dispatch($bulkJob->id, $batchSize);
+                    
+                    // Auto-start queue worker to process the job
+                    QueueWorkerManager::ensureWorkerRunning();
+                }
             }
 
             Log::info('Bulk SMS job created', [

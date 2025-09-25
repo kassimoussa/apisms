@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\BulkSmsJob;
 use App\Jobs\ProcessBulkSmsJob;
+use App\Services\QueueWorkerManager;
 use Illuminate\Support\Facades\Log;
 
 class BulkSmsManager extends Component
@@ -106,6 +107,9 @@ class BulkSmsManager extends Component
             // Dispatch job if not scheduled
             if (!$bulkJob->scheduled_at || $bulkJob->scheduled_at->isPast()) {
                 ProcessBulkSmsJob::dispatch($bulkJob->id, $this->batch_size);
+                
+                // Auto-start queue worker to process the job
+                QueueWorkerManager::ensureWorkerRunning();
             }
 
             Log::info('Bulk SMS campaign created via web interface', [

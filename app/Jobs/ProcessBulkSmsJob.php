@@ -125,7 +125,7 @@ class ProcessBulkSmsJob implements ShouldQueue
                             'bulk_job_id' => $bulkJob->id,
                             'sms_id' => $smsMessage->id,
                             'to' => $recipient,
-                            'error' => $result['error']
+                            'error' => $result['error'] ?? 'Unknown error'
                         ]);
                     }
 

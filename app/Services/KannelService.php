@@ -73,6 +73,23 @@ class KannelService
             'retry_attempts' => $this->retryAttempts,
         ]);
 
+        // Development mode: simulate success when Kannel is not available
+        if (app()->environment('local') && !$this->isKannelAvailable()) {
+            Log::info('Development mode: simulating SMS send success', [
+                'request_id' => $requestId,
+                'to' => $to,
+                'from' => $from,
+                'message' => 'Kannel not available - simulating success'
+            ]);
+            
+            return [
+                'success' => true,
+                'kannel_id' => 'dev_' . $requestId,
+                'message' => 'Simulated send (development mode)',
+                'request_id' => $requestId
+            ];
+        }
+
         return $this->executeWithRetry(function() use ($params, $to, $from, $requestId) {
             return $this->makeKannelRequest($params, $to, $from, $requestId);
         }, $requestId);
@@ -447,5 +464,23 @@ class KannelService
             30 => 'Invalid message reference',
             31 => 'Message integrity error',
         ];
+    }
+
+    /**
+     * Check if Kannel is available (quick test)
+     */
+    private function isKannelAvailable(): bool
+    {
+        try {
+            // Quick connection test with very short timeout
+            $response = $this->client->get($this->baseUrl, [
+                'timeout' => 2, // Very short timeout
+                'connect_timeout' => 1
+            ]);
+            
+            return $response->getStatusCode() !== 0;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }
