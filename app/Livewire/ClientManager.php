@@ -59,17 +59,20 @@ class ClientManager extends Component
     {
         $client = Client::find($clientId);
         if ($client) {
-            // Check if client has SMS messages
+            $clientName = $client->name;
             $messageCount = $client->smsMessages()->count();
             
-            if ($messageCount > 0) {
-                session()->flash('error', "Cannot delete client '{$client->name}' - they have {$messageCount} SMS messages. Please archive instead.");
-                return;
-            }
+            // Delete all related SMS messages first
+            $client->smsMessages()->delete();
             
-            $clientName = $client->name;
+            // Then delete the client
             $client->delete();
-            session()->flash('message', "Client '{$clientName}' deleted successfully!");
+            
+            if ($messageCount > 0) {
+                session()->flash('message', "Client '{$clientName}' et ses {$messageCount} messages SMS supprimés avec succès !");
+            } else {
+                session()->flash('message', "Client '{$clientName}' supprimé avec succès !");
+            }
         }
     }
 
